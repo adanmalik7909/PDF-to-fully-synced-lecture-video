@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — Summary</title>
+    <style>
+        {% include '_base.css.j2' %}
+        /* Summary: centered, navy, big quote-style takeaway */
+        .summary-center {
+            position: absolute; inset: 0;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 80px 200px;
+            text-align: center;
+            z-index: 10;
+        }
+        .summary-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(46px, 4.8vw, 68px);
+            font-weight: 700;
+            color: var(--white);
+            margin-bottom: 36px;
+        }
+        .summary-recap {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+        }
+        .recap-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 16px;
+            padding: 20px 32px;
+            border: 1px solid rgba(201,185,154,0.15);
+            opacity: 0;
+            transform: translateX(-20px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+        .recap-item.b-visible {
+            opacity: 1 !important;
+            transform: translateX(0) !important;
+        }
+        .recap-num {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: 800;
+            font-family: 'Inter';
+            min-width: 36px;
+        }
+        .recap-text {
+            font-size: 22px;
+            color: rgba(255,255,255,0.88);
+            font-weight: 400;
+            text-align: left;
+        }
+    </style>
+    {% include '_gsap_head.html.j2' %}
+</head>
+<body>
+<script>window.TIMELINE_DATA = {{ timeline_data | tojson }};</script>
+
+<div id="analogy-overlay"></div>
+<div id="kb-target" style="position:absolute;inset:0;z-index:0;"></div>
+
+<div class="summary-center">
+    <div class="topic-chip inter">{{ scene.topic }}</div>
+    <h1 class="summary-heading playfair slide-heading">{{ scene.heading_left }}</h1>
+
+    <div class="summary-recap">
+        {% for bullet in scene.bullets %}
+        {% if bullet is mapping %}
+        <div class="recap-item bullet" data-index="{{ loop.index0 }}">
+            <span class="recap-num">{{ "%02d"|format(loop.index) }}</span>
+            <span class="recap-text inter">{{ bullet.text }}</span>
+        </div>
+        {% else %}
+        <div class="recap-item bullet" data-index="{{ loop.index0 }}">
+            <span class="recap-num">{{ "%02d"|format(loop.index) }}</span>
+            <span class="recap-text inter">{{ bullet }}</span>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% if scene.avatar_path %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+
+<!-- NOTE: Subtitles burned by FFmpeg SRT -->
+
+<div id="takeaway-bar">
+    <span class="takeaway-label inter">Key Takeaway</span>
+    <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+</div>
+
+{% include '_gsap_layers.html.j2' %}
+
+<script>{% include '_timeline_engine.js.j2' %}</script>
+</body>
+</html>

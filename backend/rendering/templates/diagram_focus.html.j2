@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — Diagram Focus</title>
+    <style>
+        {% include '_base.css.j2' %}
+
+        /* ── Scene Layout ────────────────────────────────────── */
+        .diag-header {
+            position: absolute;
+            top: 36px; left: 60px; right: 60px;
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(34px, 3.4vw, 48px);
+            font-weight: 700;
+            color: var(--white);
+            letter-spacing: -0.5px;
+            z-index: 10;
+            text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+        }
+
+        /* ── Diagram Stage ───────────────────────────────────── */
+        /* The stage clips overflowing zoom animations. It is 
+           deliberately large but contained so nothing escapes the frame. */
+        .diag-stage {
+            position: absolute;
+            left: 60px; top: 120px;
+            width: 1800px; height: 780px;
+            background: rgba(12, 18, 35, 0.95);
+            border-radius: 24px;
+            box-shadow: 0 40px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
+            border: 1px solid rgba(79,142,247,0.2);
+            overflow: hidden; /* CRITICAL: clips zoom so diagram never leaves screen */
+            z-index: 5;
+        }
+
+        /* ── Diagram Viewport ─────────────────────────────────
+           The viewport is a sub-container that holds the image and all overlays.
+           We apply GSAP transforms to this element, NOT the image directly.
+           This gives us pan+zoom while the stage clip keeps it on-screen. */
+        #diagram-viewport {
+            position: absolute;
+            width: 100%; height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center center;
+            will-change: transform;
+        }
+
+        #diagram-img {
+            max-width: 94%;
+            max-height: 94%;
+            object-fit: contain;
+            border-radius: 8px;
+            display: block;
+            filter: brightness(0.98) contrast(1.02);
+            /* NO transform here — transforms go on #diagram-viewport */
+        }
+
+        /* ── Overlay Layers (positioned over diagram-viewport) ─ */
+        #diagram-canvas-overlay,
+        #diagram-svg-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* ── Spatial Pointer ─────────────────────────────────── */
+        #spatial-pointer {
+            position: absolute;
+            width: 28px; height: 28px;
+            display: none;
+            z-index: 30;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+        }
+        .ptr-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 3px solid #4F8EF7;
+            animation: ptr-pulse 1s ease-in-out infinite;
+        }
+        .ptr-dot {
+            position: absolute;
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #FFD700;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 12px #FFD700;
+        }
+        .ptr-label {
+            position: absolute;
+            bottom: 34px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10,20,45,0.92);
+            color: #FFD700;
+            padding: 5px 14px;
+            border-radius: 20px;
+            font-size: 15px;
+            font-weight: 700;
+            white-space: nowrap;
+            border: 1px solid rgba(79,142,247,0.4);
+            letter-spacing: 0.3px;
+        }
+        @keyframes ptr-pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.6); opacity: 0.3; }
+        }
+
+        /* ── Highlight Box ───────────────────────────────────── */
+        .spatial-highlight-box {
+            position: absolute;
+            border: 3px solid #4F8EF7;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(79,142,247,0.5), inset 0 0 30px rgba(79,142,247,0.08);
+            pointer-events: none;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        /* ── Floating Label Popup ────────────────────────────── */
+        .diagram-label-popup {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(10,20,45,0.96), rgba(20,35,70,0.96));
+            color: #FFFFFF;
+            padding: 8px 18px;
+            border-radius: 24px;
+            font-family: 'Inter', sans-serif;
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            border: 1px solid rgba(79,142,247,0.5);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.5), 0 0 20px rgba(79,142,247,0.2);
+            z-index: 40;
+            white-space: nowrap;
+            transform: translateY(8px);
+            opacity: 0;
+            transition: opacity 0.35s ease, transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+            pointer-events: none;
+        }
+        .diagram-label-popup.popup-visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .diagram-label-popup::before {
+            content: '▶';
+            margin-right: 8px;
+            color: #4F8EF7;
+            font-size: 12px;
+        }
+
+        /* ── Takeaway Bar ────────────────────────────────────── */
+        #takeaway-bar {
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            background: linear-gradient(135deg, rgba(20,40,80,0.98), rgba(30,60,120,0.98));
+            border-top: 1px solid rgba(79,142,247,0.3);
+            padding: 18px 40px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            z-index: 25;
+            transform: translateY(100%);
+            opacity: 0;
+            transition: transform 0.5s cubic-bezier(0.34,1.56,0.64,1), opacity 0.5s ease;
+        }
+        #takeaway-bar.takeaway-visible {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        .takeaway-label {
+            background: linear-gradient(135deg, #4F8EF7, #7FB3FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+            font-size: 15px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .takeaway-text {
+            color: rgba(255,255,255,0.92);
+            font-size: 19px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        /* ── "Spotlight" attention box ───────────────────────── */
+        #attention-hook-box {
+            position: fixed;
+            top: 44px; right: 60px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 22px;
+            border-radius: 16px;
+            background: linear-gradient(135deg, rgba(30,50,100,0.98), rgba(20,35,80,0.98));
+            border: 1px solid rgba(79,142,247,0.5);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 20px rgba(79,142,247,0.2);
+            z-index: 100;
+        }
+        .hook-icon { font-size: 22px; }
+        .hook-text {
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 16px;
+            font-weight: 600;
+            max-width: 280px;
+            line-height: 1.4;
+        }
+
+        /* ── Scene Fade-in ───────────────────────────────────── */
+        body { opacity: 0; }
+        body.scene-ready { opacity: 1; transition: opacity 0.5s ease; }
+    </style>
+    {% include '_gsap_head.html.j2' %}
+</head>
+<body>
+<script>window.TIMELINE_DATA = {{ timeline_data | tojson }};</script>
+
+<div id="analogy-overlay"></div>
+<div id="attention-hook-box"></div>
+
+<h1 class="diag-header playfair">{{ scene.heading_right or scene.heading_left }}</h1>
+
+<div class="diag-stage" id="diag-stage">
+    {% if scene.diagram_paths %}
+    <!-- The viewport is what we pan+zoom. Stage clips it. -->
+    <div id="diagram-viewport">
+
+        <img id="diagram-img"
+             src="{{ scene.diagram_paths[0] }}"
+             alt="Lecture Diagram"
+             onload="_initDiagramOverlays(this)">
+
+        <!-- Canvas: spotlight/dim effects -->
+        <canvas id="diagram-canvas-overlay"></canvas>
+
+        <!-- SVG: arrows, circles, underlines -->
+        <svg id="diagram-svg-overlay">
+          <defs>
+            <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                    refX="9" refY="3.5" orient="auto">
+              <polygon points="0 0, 10 3.5, 0 7" fill="#4F8EF7"/>
+            </marker>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+              <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+          </defs>
+        </svg>
+
+        <!-- Spatial pointer: pulsing dot + label -->
+        <div id="spatial-pointer">
+          <div class="ptr-ring"></div>
+          <div class="ptr-dot"></div>
+          <div class="ptr-label"></div>
+        </div>
+
+    </div><!-- end diagram-viewport -->
+
+    <!-- Takeaway bar sits inside stage but outside viewport so it stays put -->
+    <div id="takeaway-bar">
+        <span class="takeaway-label inter">Key Takeaway</span>
+        <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+    </div>
+
+    {% else %}
+    <div style="color: rgba(255,255,255,0.4); font-size: 28px; display:flex; align-items:center; justify-content:center; height:100%">
+        No diagram provided for this scene.
+    </div>
+    {% endif %}
+</div>
+
+{% if scene.avatar_path %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+<script>
+/* ── Diagram overlay sizing ─────────────────────────────── */
+function _initDiagramOverlays(img) {
+    const canvas = document.getElementById('diagram-canvas-overlay');
+    const svg    = document.getElementById('diagram-svg-overlay');
+    if (!canvas || !svg) return;
+
+    // Size canvas to match natural image dimensions (for pixel-perfect highlights)
+    canvas.width  = img.naturalWidth  || img.offsetWidth;
+    canvas.height = img.naturalHeight || img.offsetHeight;
+    // Match CSS display size to image
+    canvas.style.width  = img.offsetWidth  + 'px';
+    canvas.style.height = img.offsetHeight + 'px';
+    canvas.style.left   = img.offsetLeft   + 'px';
+    canvas.style.top    = img.offsetTop    + 'px';
+
+    svg.setAttribute('viewBox', `0 0 ${img.offsetWidth} ${img.offsetHeight}`);
+    svg.style.width  = img.offsetWidth  + 'px';
+    svg.style.height = img.offsetHeight + 'px';
+    svg.style.left   = img.offsetLeft   + 'px';
+    svg.style.top    = img.offsetTop    + 'px';
+
+    // Signal to timeline engine that overlays are ready
+    window._overlaysReady = true;
+}
+</script>
+
+{% include '_gsap_layers.html.j2' %}
+<script>{% include '_timeline_engine.js.j2' %}</script>
+</body>
+</html>

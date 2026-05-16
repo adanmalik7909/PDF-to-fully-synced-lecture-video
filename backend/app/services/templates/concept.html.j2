@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor Concept Scene</title>
+    <style>
+        {% include '_base.css.j2' %}
+        
+        /* Concept Specific */
+        .topic-tag { font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 3px; color: var(--accent); margin-bottom: 25px; font-family: 'Outfit'; }
+        .heading-left { font-size: clamp(38px, 4vw, 56px); font-weight: 800; line-height: 1.15; margin-bottom: 30px; letter-spacing: -1px; }
+        .desc-left { font-size: 22px; color: var(--muted); line-height: 1.6; margin-bottom: 40px; font-weight: 400; }
+        .cta-chip { align-self: flex-start; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15); padding: 10px 24px; border-radius: 30px; font-size: 14px; font-weight: 600; font-family: 'Outfit'; letter-spacing: 1px; color: rgba(255,255,255,0.6); }
+        
+        .heading-right { font-size: clamp(32px, 3.5vw, 48px); font-weight: 800; color: var(--dark-text); letter-spacing: -1px; }
+        .bullets-container { margin-top: 40px; width: {% if scene.diagram_paths %}60%{% else %}100%{% endif %}; }
+        
+        .diagram-container { 
+            position: absolute; right: 80px; top: 180px; width: 32%; height: 60%; 
+            background: rgba(248, 250, 252, 0.5); border-radius: 20px; padding: 25px;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.05), 0 20px 40px rgba(0,0,0,0.08);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; transform: translateX(20px);
+            backdrop-filter: blur(10px);
+        }
+        .diagram-img { max-width: 100%; max-height: 85%; object-fit: contain; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); }
+        .diagram-caption { margin-top: 20px; font-size: 15px; color: var(--body-text); font-style: italic; text-align: center; font-weight: 500; }
+    </style>
+</head>
+<body data-duration="{{ scene.duration_sec }}">
+
+    <!-- Left Panel (Dark Mesh Area) -->
+    <div class="left-panel">
+        <div class="topic-tag">{{ scene.topic }}</div>
+        
+        <h1 class="outfit heading-left" id="heading_left">
+            {% set heading = scene.heading_left %}
+            {% if scene.gold_word %}
+                {% set heading = heading|replace(scene.gold_word, '<span class="gold-word">' + scene.gold_word + '</span>', 1) %}
+            {% endif %}
+            {{ heading | safe }}
+        </h1>
+        
+        <div class="desc-left inter">{{ scene.left_description }}</div>
+        <div class="cta-chip">SCENE {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}</div>
+    </div>
+
+    <!-- Right Panel (Frosted Glass Card) -->
+    <div class="right-panel">
+        <h2 class="outfit heading-right">{{ scene.heading_right }}</h2>
+        <div class="gold-divider"></div>
+        
+        <div class="bullets-container">
+            {% for bullet in scene.bullets %}
+                <div class="bullet-item" id="bullet_{{ loop.index0 }}">
+                    <div class="bullet-num">{{ bullet.num|default("%02d"|format(loop.index)) }}</div>
+                    <div class="bullet-text inter">
+                        {% set text = bullet.text %}
+                        {% if bullet.zoom_word %}
+                            {% set text = text|replace(bullet.zoom_word, '<span class="zoom-word">' ~ bullet.zoom_word ~ '</span>', 1) %}
+                        {% endif %}
+                        {{ text | safe }}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        
+        {% if scene.diagram_paths %}
+        <div class="diagram-container" id="diagram-container">
+            {% for path in scene.diagram_paths %}
+            <img src="{{ path }}" class="diagram-img" alt="Diagram {{ loop.index }}">
+            {% endfor %}
+            <div class="diagram-caption inter">{{ scene.diagram_caption }}</div>
+        </div>
+        {% endif %}
+
+        <!-- Takeaway Bar -->
+        <div id="takeaway-bar">
+            <div class="takeaway-label">Key Takeaway</div>
+            <div class="takeaway-text inter">{{ scene.takeaway }}</div>
+        </div>
+    </div>
+
+    <!-- Avatar Premium Floating Container -->
+    {% if avatar_config.visible and scene.avatar_path %}
+    <div id="avatar-ring" style="position: absolute; bottom: 80px; left: 80px; width: 280px; height: 280px; z-index: 50;" class="avatar-ring">
+        <img src="{{ scene.avatar_path }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+    </div>
+    {% endif %}
+
+    <!-- Subtitle Container -->
+    <div id="subtitle-container" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; font-size: 38px; font-weight: 600; font-family: 'Inter', sans-serif; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); z-index: 100; opacity: 0; transition: opacity 0.2s;">
+    </div>
+
+    <script>
+        {{ JS_BRIDGE | safe }}
+    </script>
+</body>
+</html>

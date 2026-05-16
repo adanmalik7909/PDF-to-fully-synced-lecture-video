@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SmartStudyInstructor — Learn the Fun Way</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --orange: #E8440A;
+      --orange-light: #FF6B35;
+      --yellow: #FFD84D;
+      --yellow-bg: #FFF3B0;
+      --green: #B8E986;
+      --green-bg: #D6F5C3;
+      --mint: #C8F5E0;
+      --pink: #FFD6E0;
+      --bg: #F0EDE6;
+      --white: #FFFFFF;
+      --dark: #1A1A1A;
+      --gray: #6B6B6B;
+      --light-gray: #E8E4DC;
+      --font-display: 'Sora', sans-serif;
+      --font-body: 'Plus Jakarta Sans', sans-serif;
+      --radius: 20px;
+      --radius-lg: 28px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--dark);
+      overflow-x: hidden;
+    }
+
+    /* ── NAV ── */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 60px;
+      background: #e4e3e1;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1.5px solid var(--light-gray);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: var(--dark);
+      text-decoration: none;
+    }
+
+    .logo-diamond {
+      width: 18px;
+      height: 18px;
+      background: var(--orange);
+      transform: rotate(45deg);
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    .animated-logo {
+      background: linear-gradient(270deg, var(--dark), var(--orange), var(--yellow), var(--dark));
+      background-size: 300% 300%;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientShift 4s ease infinite;
+      display: inline-block;
+    }
+
+    @keyframes gradientShift {
+      0% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 36px;
+      list-style: none;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: var(--dark);
+      font-size: 0.95rem;
+      font-weight: 500;
+      transition: color 0.2s;
+    }
+
+    .nav-links a:hover {
+      color: var(--orange);
+    }
+
+    .btn-primary {
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-logout {
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-logout:hover {
+      background: #000;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary:hover {
+      background: var(--orange-light);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--dark);
+      color: #fff;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-secondary:hover {
+      background: #333;
+      transform: translateY(-2px);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 100px;
+      background: white;
+      border-bottom: 1.5px solid var(--light-gray);
+    }
+
+    .hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.5vw, 3.5rem);
+      font-weight: 800;
+      line-height: 1.1;
+      color: var(--dark);
+      margin-bottom: 20px;
+      max-width: 800px;
+      margin: 0 auto 20px;
+    }
+
+    .hero p {
+      font-size: 1.1rem;
+      color: var(--gray);
+      line-height: 1.6;
+      max-width: 600px;
+      margin: 0 auto 36px;
+    }
+
+    /* ── TOOL SECTION (Blueprint Pipeline) ── */
+    .tool-container {
+      max-width: 1000px;
+      margin: -60px auto 80px;
+      position: relative;
+      z-index: 10;
+      padding: 0 24px;
+    }
+
+    .tool-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 40px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+      margin-bottom: 24px;
+    }
+
+    .tool-card h2 {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .step-badge {
+      background: var(--orange);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--orange-light);
+      border-radius: var(--radius);
+      padding: 40px;
+      text-align: center;
+      background: #FFF9F7;
+      cursor: pointer;
+      transition: all 0.2s;
+      flex: 1;
+    }
+
+    .upload-zone:hover {
+      background: #FFE8E0;
+      border-color: var(--orange);
+    }
+
+    .upload-zone h3 {
+      font-family: var(--font-display);
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+
+    .upload-zone p {
+      color: var(--gray);
+      font-size: 0.9rem;
+    }
+
+    .upload-zone input {
+      display: none;
+    }
+
+    .text-input-zone {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .text-input-zone textarea {
+      flex: 1;
+      width: 100%;
+      padding: 16px;
+      border: 1px dashed var(--gray);
+      border-radius: var(--radius);
+      background: var(--bg);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      resize: none;
+      transition: border-color 0.2s;
+    }
+
+    .text-input-zone textarea:focus {
+      outline: none;
+      border-color: var(--orange);
+      background: #fff;
+    }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      padding: 16px;
+      border-radius: 12px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 1.05rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-top: 24px;
+    }
+
+    .btn-submit:hover {
+      background: var(--orange-light);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(232, 68, 10, 0.3);
+    }
+
+    .btn-submit:disabled {
+      background: var(--gray);
+      box-shadow: none;
+      transform: none;
+      cursor: not-allowed;
+    }
+
+    .btn-generate {
+      background: var(--green);
+      color: var(--dark);
+      box-shadow: 0 8px 24px rgba(184, 233, 134, 0.4);
+    }
+
+    .btn-generate:hover {
+      background: #A6D975;
+      box-shadow: 0 8px 24px rgba(184, 233, 134, 0.6);
+    }
+
+    .scene-card {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 16px;
+      border-left: 6px solid var(--orange);
+      transition: transform 0.2s;
+    }
+
+    .scene-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .scene-card h3 {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+      color: var(--dark);
+    }
+
+    .scene-card label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--gray);
+      display: block;
+      margin: 12px 0 6px;
+    }
+
+    .scene-card input,
+    .scene-card textarea {
+      width: 100%;
+      padding: 12px 16px;
+      border-radius: 10px;
+      border: 1px solid var(--light-gray);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+      background: #fff;
+    }
+
+    .scene-card input:focus,
+    .scene-card textarea:focus {
+      outline: none;
+      border-color: var(--orange);
+    }
+
+    .field-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .field-row>div {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .avatar-box {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: var(--radius);
+      background: var(--pink);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .avatar-box h3 {
+      font-family: var(--font-display);
+      font-size: 1rem;
+    }
+
+    .avatar-box p {
+      font-size: 0.85rem;
+      color: var(--dark);
+      opacity: 0.8;
+    }
+
+    /* ── HORIZONTAL STEPPER ── */
+    .loading-stepper {
+      display: none;
+      margin-top: 30px;
+      padding: 10px 0;
+      text-align: center;
+    }
+
+    #vStepsContainer {
+      display: flex;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .v-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      z-index: 2;
+      width: 16.66%;
+    }
+
+    .v-step::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      right: calc(50% + 16px);
+      width: calc(100% - 32px);
+      height: 3px;
+      background: var(--light-gray);
+      z-index: 1;
+      transition: background 0.4s ease;
+    }
+
+    .v-step:first-child::before {
+      display: none;
+    }
+
+    .v-step-circle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--white);
+      border: 3px solid var(--light-gray);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      color: var(--gray);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      margin-bottom: 12px;
+      position: relative;
+    }
+
+    .v-step-content {
+      text-align: center;
+      padding: 0 4px;
+    }
+
+    .v-step-title {
+      font-weight: 700;
+      color: var(--gray);
+      font-size: 0.75rem;
+      line-height: 1.3;
+      transition: color 0.3s;
+    }
+
+    .v-step-desc {
+      display: none;
+    }
+
+    /* States */
+    .v-step.active .v-step-circle {
+      border-color: var(--orange);
+      color: var(--orange);
+      background: var(--white);
+      animation: pulse-ring 1.5s infinite;
+    }
+
+    .v-step.active .v-step-title {
+      color: var(--orange);
+    }
+
+    .v-step.completed .v-step-circle {
+      background: #0D9488; /* Teal Green */
+      border-color: #0D9488;
+      color: var(--white);
+    }
+
+    .v-step.completed .v-step-title {
+      color: var(--dark);
+    }
+
+    /* Logo Floating Animation */
+    @keyframes floatLogo {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-3px); }
+    }
+    
+    .logo {
+      display: flex;
+      align-items: center;
+      text-decoration: none;
+      animation: floatLogo 3s ease-in-out infinite;
+      transition: transform 0.3s ease;
+    }
+    
+    .logo:hover {
+      transform: scale(1.05);
+      animation-play-state: paused;
+    }
+
+    @keyframes pulse-ring {
+      0% { box-shadow: 0 0 0 0 rgba(232, 68, 10, 0.4); }
+      70% { box-shadow: 0 0 0 8px rgba(232, 68, 10, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(232, 68, 10, 0); }
+    }
+
+    .progress-box {
+      text-align: center;
+      padding: 30px;
+      background: var(--yellow-bg);
+      border-radius: var(--radius);
+      border: 2px dashed var(--yellow);
+      display: none;
+      margin-bottom: 24px;
+    }
+
+    .progress-box h3 {
+      font-family: var(--font-display);
+      color: var(--dark);
+    }
+
+    .result-card {
+      display: none;
+      text-align: center;
+    }
+
+    .result-card h2 {
+      justify-content: center;
+      color: var(--green);
+    }
+
+    .result-card video {
+      width: 100%;
+      border-radius: var(--radius);
+      margin-top: 20px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-download {
+      background: var(--yellow);
+      color: var(--dark);
+      display: inline-block;
+      padding: 16px 36px;
+      border-radius: 12px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      text-decoration: none;
+      margin-top: 24px;
+      transition: transform 0.2s;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(255, 216, 77, 0.4);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(26, 26, 26, 0.2);
+      border-top-color: var(--dark);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 10px;
+      vertical-align: middle;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+      display: inline-block;
+      background: #FFE8E0;
+      color: var(--orange);
+      border-radius: 50px;
+      padding: 5px 14px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      nav {
+        padding: 16px 24px;
+      }
+
+      .nav-links {
+        display: none;
+      }
+
+      .tool-container {
+        padding: 0 16px;
+        margin-top: -30px;
+      }
+
+      .field-row {
+        flex-direction: column;
+      }
+
+      .hero {
+        padding: 48px 20px 80px;
+      }
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--white);
+      border-top: 1.5px solid var(--light-gray);
+      padding: 60px;
+    }
+
+    .footer-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      gap: 40px;
+      margin-bottom: 48px;
+    }
+
+    .footer-brand p {
+      font-size: 0.88rem;
+      color: var(--gray);
+      margin-top: 14px;
+      line-height: 1.6;
+      max-width: 280px;
+    }
+
+    .footer-col h4 {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 0.9rem;
+      margin-bottom: 16px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .footer-col ul a {
+      text-decoration: none;
+      color: var(--gray);
+      font-size: 0.87rem;
+      transition: color 0.2s;
+    }
+
+    .footer-col ul a:hover {
+      color: var(--orange);
+    }
+
+    .footer-bottom {
+      max-width: 1200px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 24px;
+      border-top: 1px solid var(--light-gray);
+      font-size: 0.83rem;
+      color: var(--gray);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">
+      <svg width="36" height="36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px; flex-shrink: 0;">
+        <path d="M 40 45 L 60 45 L 60 60 L 50 85 L 40 60 Z" fill="#222222" stroke="#222222" stroke-width="2" stroke-linejoin="round"/>
+        <path d="M 42 45 L 58 45 L 58 58 L 50 78 L 42 58 Z" fill="#FFB800"/>
+        <circle cx="50" cy="55" r="2.5" fill="#222222"/>
+        <line x1="50" y1="55" x2="50" y2="78" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+        <path d="M 38 33 L 62 33 L 62 43 C 58 46, 42 46, 38 43 Z" fill="#222222"/>
+        <path d="M 50 15 L 85 30 L 50 45 L 15 30 Z" fill="#222222"/>
+        <circle cx="28" cy="31" r="2.5" fill="#FFFFFF" stroke="#222222" stroke-width="2"/>
+        <line x1="28" y1="31" x2="28" y2="52" stroke="#222222" stroke-width="2"/>
+        <path d="M 25 52 L 31 52 L 28 58 Z" fill="#222222"/>
+        <path d="M 50 85 C 65 83, 75 75, 85 70 C 70 75, 60 80, 48 88" fill="#FFB800"/>
+      </svg>
+      <span class="animated-logo">SmartStudyInstructor</span>
+    </a>
+    <ul class="nav-links">
+      <li><a href="/simple">Dashboard</a></li>
+      <li><a href="#">How It Works</a></li>
+      <li><a href="/video-generator">Old Tools</a></li>
+    </ul>
+    <div style="display: flex; gap: 12px; align-items: center;">
+      <a href="#" class="btn-primary">My Profile</a>
+      <button class="btn-logout" onclick="handleLogout()">Logout</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="section-label">AI Video Director</div>
+    <h1>Create professional lecture videos the fun way</h1>
+    <p>Upload a document, and our AI will automatically create beautiful, engaging video lectures with dynamic slides
+      and synced teacher narration.</p>
+  </section>
+
+  <!-- BLUEPRINT TOOL -->
+  <div class="tool-container">
+
+    <!-- Step 1: Upload -->
+    <div class="tool-card" id="step1">
+      <h2>
+        <div class="step-badge">1</div> Provide Content
+      </h2>
+
+      <div style="display: flex; justify-content: center; width: 100%;">
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()"
+          style="width: 100%; max-width: 600px;">
+          <div style="font-size: 2.5rem; margin-bottom: 10px;">📄</div>
+          <h3>Click to Upload PDF</h3>
+          <p>Supported: PDF documents with educational content</p>
+          <input type="file" id="fileInput" accept=".pdf">
+          <p id="fileName" style="margin-top:10px; color:var(--green); font-weight:600;"></p>
+        </div>
+      </div>
+
+      <button class="btn-submit" id="generateDraftBtn" onclick="generateDraft()">Generate AI Blueprint ✨</button>
+      
+      <!-- Loading Stepper -->
+      <div class="loading-stepper" id="loadingStepper">
+        <div id="vStepsContainer"></div>
+      </div>
+    </div>
+
+    <!-- Step 2: Edit Timeline -->
+    <div class="tool-card" id="step2" style="display: none;">
+      <h2>
+        <div class="step-badge">2</div> Review & Edit Lecture Slides
+      </h2>
+      <div id="scenesContainer"></div>
+
+      <div class="avatar-box">
+        <div style="font-size: 2rem;">🧑‍🏫</div>
+        <div>
+          <h3>Optional: Custom Teacher Avatar</h3>
+          <p>Attach a teacher image to appear as a floating avatar in the video.</p>
+          <input type="file" id="avatarInput" accept=".png,.jpg,.jpeg" style="margin-top: 8px;">
+        </div>
+      </div>
+
+      <button class="btn-submit btn-generate" id="assembleBtn" onclick="assembleVideo()">Render Lecture Video
+        🎬</button>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-box" id="progressBox">
+      <h3><span class="spinner"></span> <span id="progressText">Generating slides & assembling video...</span></h3>
+    </div>
+
+    <!-- Result -->
+    <div class="tool-card result-card" id="resultCard">
+      <h2>
+        <div class="step-badge" style="background:var(--green);">✓</div> Lecture Video Ready!
+      </h2>
+      <video id="finalVideo" controls></video>
+      <a id="downloadLink" class="btn-download" download>Download Video</a>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="logo">
+          <svg width="24" height="24" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-right: 8px;">
+            <path d="M 40 45 L 60 45 L 60 60 L 50 85 L 40 60 Z" fill="#222222" stroke="#222222" stroke-width="2" stroke-linejoin="round"/>
+            <path d="M 42 45 L 58 45 L 58 58 L 50 78 L 42 58 Z" fill="#FFB800"/>
+            <circle cx="50" cy="55" r="2.5" fill="#222222"/>
+            <line x1="50" y1="55" x2="50" y2="78" stroke="#222222" stroke-width="2" stroke-linecap="round"/>
+            <path d="M 38 33 L 62 33 L 62 43 C 58 46, 42 46, 38 43 Z" fill="#222222"/>
+            <path d="M 50 15 L 85 30 L 50 45 L 15 30 Z" fill="#222222"/>
+            <circle cx="28" cy="31" r="2.5" fill="#FFFFFF" stroke="#222222" stroke-width="2"/>
+            <line x1="28" y1="31" x2="28" y2="52" stroke="#222222" stroke-width="2"/>
+            <path d="M 25 52 L 31 52 L 28 58 Z" fill="#222222"/>
+            <path d="M 50 85 C 65 83, 75 75, 85 70 C 70 75, 60 80, 48 88" fill="#FFB800"/>
+          </svg>
+          SmartStudyInstructor
+        </a>
+        <p>Master new skills with bite-sized lessons, game-like progress, and AI-powered personalization.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Tools</h4>
+        <ul>
+          <li><a href="#">AI Video Generator</a></li>
+          <li><a href="#">Smart Tutor</a></li>
+          <li><a href="#">Classroom Analytics</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About Us</a></li>
+          <li><a href="#">Blog</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <ul>
+          <li><a href="#">Help Center</a></li>
+          <li><a href="#">Contact Us</a></li>
+          <li><a href="#">Privacy Policy</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 SmartStudyInstructor. All rights reserved.</span>
+      <span>Made with ❤️ for learners everywhere</span>
+    </div>
+  </footer>
+
+  <script>
+    // Initialize Supabase
+    const SUPABASE_URL = 'https://kmoxllxzfsfkzxlmodts.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imttb3hsbHh6ZnNma3p4bG1vZHRzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2NzM1NzMsImV4cCI6MjA5NDI0OTU3M30._b98Xc9K5yJU6Zw8weWe4hX7pXvVbFoHjHaOLKnrdOY';
+    let supabaseClient;
+
+    if (typeof supabase !== 'undefined') {
+      supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } else {
+      console.error("Supabase library not loaded!");
+    }
+
+    async function handleLogout() {
+      try {
+        console.log("Logout initiated...");
+        await supabaseClient.auth.signOut();
+      } catch (e) {
+        console.error("Logout error:", e);
+      }
+      window.location.href = '/';
+    }
+
+    let currentBlueprint = null;
+
+    document.getElementById('fileInput').addEventListener('change', (e) => {
+      if (e.target.files.length) document.getElementById('fileName').innerText = e.target.files[0].name;
+    });
+
+    async function generateDraft() {
+      const fileInput = document.getElementById('fileInput');
+
+      if (!fileInput.files.length) return alert('Please select a PDF file first.');
+
+      const btn = document.getElementById('generateDraftBtn');
+      btn.disabled = true; 
+      btn.innerText = "Processing...";
+      
+      const loadingStepsData = [
+        { title: "Reading PDF content...", desc: "Extracting text structure and metadata." },
+        { title: "Extracting images & diagrams...", desc: "Locating visual assets in document." },
+        { title: "Agent 1: Content Analysis...", desc: "Identifying core concepts and difficulty." },
+        { title: "Agent 2: Pedagogical Strategy...", desc: "Planning real-world analogies & flow." },
+        { title: "Agent 3: Scene Choreography...", desc: "Writing professor-style narration." },
+        { title: "Finalizing JSON Blueprint...", desc: "Assembling final presentation data." }
+      ];
+
+      const stepperContainer = document.getElementById('loadingStepper');
+      const stepsDiv = document.getElementById('vStepsContainer');
+      
+      stepsDiv.innerHTML = loadingStepsData.map((step, i) => `
+        <div class="v-step" id="vstep-${i}">
+          <div class="v-step-circle">${i+1}</div>
+          <div class="v-step-content">
+            <div class="v-step-title">${step.title}</div>
+            <div class="v-step-desc">${step.desc}</div>
+          </div>
+        </div>
+      `).join('');
+      
+      stepperContainer.style.display = 'block';
+      let currentStep = 0;
+      
+      function updateStepper() {
+        if (currentStep > 0 && currentStep <= loadingStepsData.length) {
+            const prev = document.getElementById(`vstep-${currentStep-1}`);
+            if(prev) { prev.classList.remove('active'); prev.classList.add('completed'); }
+        }
+        if (currentStep < loadingStepsData.length) {
+            const curr = document.getElementById(`vstep-${currentStep}`);
+            if(curr) curr.classList.add('active');
+        }
+      }
+      
+      updateStepper();
+      
+      const loadingInterval = setInterval(() => {
+        currentStep++;
+        if (currentStep >= loadingStepsData.length) currentStep = loadingStepsData.length - 1;
+        updateStepper();
+      }, 2500);
+
+      const formData = new FormData();
+      if (fileInput.files.length) formData.append('file', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/blueprint/generate-draft', {
+          method: 'POST', body: formData
+        }); 
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error generating blueprint');
+
+        currentBlueprint = data.blueprint;
+        const vlmCount = data.vlm_pages_analyzed || 0;
+        const imgCount = data.extracted_images || 0;
+        renderTimeline();
+        document.getElementById('step2').style.display = 'block';
+        btn.innerHTML = `Blueprint Generated! ✨`;
+        btn.style.background = 'var(--green)';
+        btn.style.color = 'var(--dark)';
+        
+        // On success, mark all steps as completed
+        clearInterval(loadingInterval);
+        loadingStepsData.forEach((_, i) => {
+            const el = document.getElementById(`vstep-${i}`);
+            if (el) {
+                el.classList.remove('active');
+                el.classList.add('completed');
+            }
+        });
+        
+      } catch (e) {
+        alert(e.message);
+        btn.disabled = false; 
+        btn.innerHTML = "Generate AI Blueprint ✨";
+        clearInterval(loadingInterval);
+        document.getElementById('loadingStepper').style.display = 'none';
+      }
+    }
+
+    function renderTimeline() {
+      const container = document.getElementById('scenesContainer');
+      container.innerHTML = "";
+
+      const scenes = currentBlueprint.scenes || currentBlueprint;
+      
+      if (!scenes || !Array.isArray(scenes) || scenes.length === 0) {
+        container.innerHTML = `<div style="padding:20px; color:var(--orange); text-align:center;">
+          <p>⚠️ AI returned an empty or invalid script. Please try generating again.</p>
+        </div>`;
+        return;
+      }
+
+      scenes.forEach((scene, idx) => {
+        const div = document.createElement('div');
+        div.className = 'scene-card';
+        
+        let bulletsList = scene.bullets || [];
+        if (!Array.isArray(bulletsList)) {
+            if (typeof bulletsList === 'string') bulletsList = [bulletsList];
+            else bulletsList = [];
+        }
+        const bulletText = bulletsList.map(b => typeof b === 'string' ? `${b} | ` : `${b.text || ''} | ${b.zoom_word || ''}`).join("\n");
+        
+        let dRefs = scene.diagram_refs || scene.diagram_ref || [];
+        if (typeof dRefs === 'string') dRefs = [dRefs];
+        if (!Array.isArray(dRefs)) dRefs = [];
+        const diagramText = dRefs.join(',');
+        
+        div.innerHTML = `
+              <h3>Scene ${idx + 1}: ${scene.heading_right || 'Untitled Scene'}</h3>
+
+              <div class="field-row">
+                  <div style="flex:2">
+                      <label>Heading (Left - Question)</label>
+                      <input type="text" id="hl_${idx}" value="${scene.heading_left || ''}" placeholder="e.g. How does AI learn?">
+                  </div>
+                  <div style="flex:1">
+                      <label>Gold Word (Highlight)</label>
+                      <input type="text" id="gw_${idx}" value="${scene.gold_word || ''}" placeholder="e.g. learn">
+                  </div>
+              </div>
+
+              <label>Heading (Right - Formal Topic)</label>
+              <input type="text" id="hr_${idx}" value="${scene.heading_right || ''}" placeholder="e.g. Machine Learning Basics">
+
+              <label>Narration (Professor Voice - English Only)</label>
+              <textarea id="nar_${idx}" rows="3">${scene.ssml_narration || scene.narration || ''}</textarea>
+
+              <label>Bullets (Concept & Highlight Word - one per line: "Text | Highlight")</label>
+              <textarea id="bul_${idx}" rows="3" placeholder="Pattern: Concept Text | KeyWord">${bulletText}</textarea>
+
+              <div class="field-row" style="margin-top:10px">
+                  <div style="flex:2">
+                      <label>Key Takeaway (Bottom Bar)</label>
+                      <input type="text" id="tw_${idx}" value="${scene.takeaway || ''}">
+                  </div>
+                  <div style="flex:1">
+                      <label>Diagram Filenames (Comma separated)</label>
+                      <input type="text" id="diag_${idx}" value="${diagramText}" placeholder="image1.png, image2.png">
+                  </div>
+              </div>
+          `;
+        container.appendChild(div);
+      });
+    }
+
+    async function assembleVideo() {
+      const scenes = currentBlueprint.scenes || currentBlueprint;
+      const updatedScenes = scenes.map((scene, idx) => {
+        const bulletsRaw = document.getElementById('bul_' + idx).value;
+        const bullets = bulletsRaw.split("\n").map(line => {
+          const parts = line.split('|');
+          return {
+            text: (parts[0] || '').trim(),
+            zoom_word: (parts[1] || '').trim() || (parts[0] || '').trim().split(' ')[0]
+          };
+        }).filter(b => b.text);
+
+        const diagRaw = document.getElementById('diag_' + idx).value;
+        const diagramRefs = diagRaw ? diagRaw.split(',').map(s => s.trim()).filter(s => s) : [];
+
+        return {
+          ...scene,
+          heading_left: document.getElementById('hl_' + idx).value,
+          gold_word: document.getElementById('gw_' + idx).value,
+          heading_right: document.getElementById('hr_' + idx).value,
+          ssml_narration: document.getElementById('nar_' + idx).value,
+          takeaway: document.getElementById('tw_' + idx).value,
+          diagram_refs: diagramRefs,
+          bullets: bullets
+        };
+      });
+
+      const finalBlueprint = { scenes: updatedScenes };
+
+      document.getElementById('progressBox').style.display = 'block';
+      document.getElementById('assembleBtn').disabled = true;
+
+      const fd = new FormData();
+      fd.append('blueprint_data', JSON.stringify(finalBlueprint));
+
+      const avatarFile = document.getElementById('avatarInput').files[0];
+      if (avatarFile) fd.append('avatar_file', avatarFile);
+
+      try {
+        const res = await fetch('/api/blueprint/assemble', {
+          method: 'POST', body: fd
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'Error');
+        checkProgress(data.job_id);
+      } catch (e) {
+        alert(e.message);
+        document.getElementById('progressBox').style.display = 'none';
+        document.getElementById('assembleBtn').disabled = false;
+      }
+    }
+
+    async function checkProgress(jobId) {
+      try {
+        const res = await fetch(`/api/blueprint/status/${jobId}`);
+        const data = await res.json();
+        
+        if (!res.ok) {
+           document.getElementById('progressBox').innerHTML = `<h3 style="color:var(--orange);">Error: Job not found or server restarted. Please try assembling again.</h3>`;
+           document.getElementById('assembleBtn').disabled = false;
+           return;
+        }
+
+        if (data.status === 'completed') {
+          document.getElementById('progressBox').style.display = 'none';
+          document.getElementById('resultCard').style.display = 'block';
+          document.getElementById('finalVideo').src = data.video_url;
+          document.getElementById('downloadLink').href = data.video_url;
+          document.getElementById('assembleBtn').disabled = false;
+        } else if (data.status === 'failed') {
+          document.getElementById('progressBox').innerHTML = `<h3 style="color:var(--orange);">Error: ${data.error}</h3>`;
+          document.getElementById('assembleBtn').disabled = false;
+        } else {
+          let progressText = `Generating slides & assembling video...`;
+          let cloudBadge = data.is_cloud ? `<span class="section-label" style="background:var(--pink); color:var(--dark); margin-left: 10px; margin-bottom: 0;">☁️ Kaggle GPU Active</span>` : '';
+
+          if (data.current_step) {
+            progressText = `[${data.progress}%] ${data.current_step}`;
+          }
+
+          document.getElementById('progressText').innerHTML = `${progressText} ${cloudBadge}`;
+          setTimeout(() => checkProgress(jobId), 2000);
+        }
+      } catch (e) {
+        console.error("Progress check failed", e);
+        setTimeout(() => checkProgress(jobId), 2000);
+      }
+    }
+  </script>
+</body>
+
+</html>

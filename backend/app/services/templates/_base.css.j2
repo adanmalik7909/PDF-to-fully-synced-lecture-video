@@ -1,0 +1,160 @@
+/* ── Base CSS System V8 (Synthesia-Level Premium) ── */
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+    --current-time: 0;
+    --primary: #0F172A; /* Deep Slate */
+    --accent: #3B82F6;  /* Royal Blue */
+    --gold: #F59E0B;    /* Amber/Gold for highlights */
+    --white: #FFFFFF;
+    --muted: rgba(255,255,255,0.7);
+    --body-text: #475569;
+    --dark-text: #1E293B;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+html, body {
+    background-color: #0F172A !important;
+}
+
+body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    /* Beautiful dark mesh-like animated gradient base */
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 50%, #0F172A 100%);
+    color: var(--white);
+    position: relative;
+}
+
+/* ── Typography ── */
+.outfit { font-family: 'Outfit', sans-serif; }
+.inter { font-family: 'Inter', sans-serif; }
+
+/* ── Layout Panels (Floating Card Aesthetic) ── */
+.left-panel {
+    position: absolute; left: 80px; top: 0; width: 32%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center;
+    z-index: 10;
+}
+
+.right-panel {
+    position: absolute; right: 40px; top: 40px; width: 58%; height: 1000px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    border-radius: 32px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 80px;
+    color: var(--dark-text);
+    z-index: 5;
+}
+
+.full-bg {
+    position: absolute; left: 40px; top: 40px; width: 1840px; height: 1000px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(24px);
+    border-radius: 32px;
+    box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 80px;
+    color: var(--dark-text);
+}
+
+.gold-divider { width: 60px; height: 4px; background: var(--accent); border-radius: 2px; margin: 30px 0; }
+
+/* ── Entrance animations (For non-scrubbed elements) ── */
+.anim-fade_in     { animation: fadeIn 0.4s ease forwards; }
+.anim-scale_in    { animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+@keyframes fadeIn     { from {opacity:0} to {opacity:1} }
+@keyframes scaleIn    { from {opacity:0;transform:scale(0.9)} to {opacity:1;transform:scale(1)} }
+
+/* ── Emphasis effects ── */
+.zoom-word { color: var(--accent); font-weight: 700; border-bottom: 2px solid var(--accent); }
+
+/* ── Bullet states ── */
+.bullet { opacity: 0; transform: translateX(-20px); margin-bottom: 35px; display: flex; align-items: flex-start; }
+.bullet-num { 
+    background: rgba(59, 130, 246, 0.1); color: var(--accent); 
+    border-radius: 8px; padding: 6px 12px; font-weight: 700; 
+    margin-right: 20px; font-size: 18px; font-family: 'Outfit';
+}
+.bullet-text { font-size: 26px; line-height: 1.5; color: var(--body-text); font-weight: 500; }
+
+/* ── Takeaway bar ── */
+#takeaway-bar { 
+    position: absolute; bottom: 0; right: 0; width: 100%;
+    background: var(--primary); color: var(--white);
+    padding: 25px 50px;
+    opacity: 0; transform: translateY(20px);
+    border-radius: 0 0 32px 32px;
+    display: flex; align-items: center; gap: 20px;
+}
+.takeaway-label { font-family: 'Outfit'; font-weight: 800; color: var(--gold); font-size: 16px; letter-spacing: 2px; text-transform: uppercase; }
+.takeaway-text { font-size: 22px; color: rgba(255,255,255,0.95); font-weight: 500; }
+
+/* ── V9.0 Orchestration Styles (Time-Aware) ── */
+
+.pulse-glow-active {
+    animation: pulseGlow 2s infinite alternate;
+}
+
+@keyframes pulseGlow {
+    from { text-shadow: 0 0 10px rgba(59, 130, 246, 0.2); transform: scale(1); }
+    to { text-shadow: 0 0 30px rgba(59, 130, 246, 0.8); transform: scale(1.02); }
+}
+
+.slide-in-right {
+    animation: slideInRight 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes slideInRight {
+    from { opacity: 0; transform: translateX(50px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+.dimmed {
+    opacity: 0.3 !important;
+    filter: blur(1px);
+    transition: all 0.5s ease;
+}
+
+.active-pulse {
+    animation: goldPulse 1s ease;
+}
+
+@keyframes goldPulse {
+    0% { transform: scale(1); color: var(--gold); }
+    50% { transform: scale(1.3); color: #fff; text-shadow: 0 0 20px var(--gold); }
+    100% { transform: scale(1); color: var(--gold); }
+}
+
+.ken-burns-zoom {
+    animation: kenBurns 20s linear infinite alternate;
+}
+
+@keyframes kenBurns {
+    from { transform: scale(1.0) translate(0, 0); }
+    to { transform: scale(1.15) translate(-20px, -10px); }
+}
+
+.gold-word {
+    color: var(--gold);
+    font-weight: 800;
+    display: inline-block;
+}
+
+/* ── Avatar Premium Styling ── */
+.avatar-ring { 
+    border-radius: 50%; 
+    border: 4px solid var(--accent);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); 
+    background: #222;
+    transition: all 0.5s ease;
+}

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — {{ scene.topic }}</title>
+    <style>
+        {% include '_base.css.j2' %}
+
+        /* Narrow bullets when diagram card is present */
+        {% if scene.diagram_paths %}
+        .bullets-zone { max-width: 640px; }
+        {% endif %}
+    </style>
+    {% include '_gsap_head.html.j2' %}
+</head>
+<body class="{{ 'has-diagram' if scene.diagram_paths else '' }}">
+
+<!-- ── TIMELINE DATA (injected by Python before page load) ── -->
+<script>
+    window.TIMELINE_DATA = {{ timeline_data | tojson }};
+</script>
+
+<!-- ── Analogy background overlay ── -->
+<div id="analogy-overlay"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     LEFT PANEL — Navy
+════════════════════════════════════════════════════════ -->
+<div class="left-panel" id="kb-target">
+    <div class="topic-chip" id="topic-chip">{{ scene.topic }}</div>
+
+    <h1 class="slide-heading playfair" id="heading-left">
+        {% set heading = scene.heading_left %}
+        {% if scene.gold_word %}
+            {% set heading = heading | replace(scene.gold_word,
+                '<span class="gold-word">' ~ scene.gold_word ~ '</span>', 1) %}
+        {% endif %}
+        {{ heading | safe }}
+    </h1>
+
+    <p class="slide-description inter" id="left-desc">
+        {{ scene.left_description or '' }}
+    </p>
+
+    <div class="scene-counter">
+        Scene {{ "%02d"|format(scene.scene_index) }} /
+        {{ "%02d"|format(scene.total_scenes) }}
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     RIGHT PANEL — Cream
+════════════════════════════════════════════════════════ -->
+<div class="right-panel" id="right-panel">
+
+    <!-- Progress strip -->
+    <div class="progress-strip">
+        <div class="progress-fill"
+             style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+    </div>
+
+    <!-- Sub-heading -->
+    <h2 class="slide-heading-right playfair" id="heading-right">
+        {{ scene.heading_right }}
+    </h2>
+    <div class="gold-divider"></div>
+
+    <!-- Bullets -->
+    <div class="bullets-zone" id="bullets-zone">
+        {% for bullet in scene.bullets %}
+        {% if bullet is mapping %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ bullet.num or "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">
+                {% set btext = bullet.text or '' %}
+                {% set wrapped = btext | wordwrap_spans %}
+                {% if bullet.zoom_word %}
+                    {% set wrapped = wrapped | replace(bullet.zoom_word,
+                        '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">'
+                        ~ bullet.zoom_word ~ '</span>', 1) %}
+                {% endif %}
+                {{ wrapped | safe }}
+            </div>
+        </div>
+        {% else %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">{{ bullet | wordwrap_spans | safe }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+
+    <!-- ── DIAGRAM CARD (always rendered, fades in via JS event) ── -->
+    {% if scene.diagram_paths %}
+    <div id="diagram-card" class="diagram-card">
+
+        <!-- Mac-style header strip -->
+        <div class="diagram-card-header">
+            <div class="diagram-dot red"></div>
+            <div class="diagram-dot amber"></div>
+            <div class="diagram-dot green"></div>
+            <span style="margin-left:8px;">Diagram</span>
+        </div>
+
+        <!-- DIAGRAM ZONE — Layered (replaces simple img tag) -->
+        <div id="diagram-zone" class="diagram-zone {% if not scene.diagram_paths %}diagram-hidden{% endif %}">
+        
+          <!-- Wrapper handles CSS zoom transforms -->
+          <div id="diagram-wrapper" class="diagram-wrapper" style="overflow:hidden;">
+            <div id="diagram-zoom-target" style="position:relative; width:100%; height:100%; display:flex; align-items:center; justify-content:center;">
+        
+              <!-- Base diagram image -->
+              <img id="diagram-img"
+                   src="{{ scene.diagram_paths[0] }}"
+                   alt="Lecture Diagram"
+                   class="diagram-img"
+                   onload="initDiagramOverlays(this)">
+          
+              <!-- Canvas overlay for highlight/dim effects -->
+              <canvas id="diagram-canvas-overlay" class="diagram-overlay-canvas"></canvas>
+          
+              <!-- SVG overlay for arrows -->
+              <svg id="diagram-svg-overlay" class="diagram-overlay-svg">
+                <defs>
+                  <marker id="arrowhead" markerWidth="10" markerHeight="7"
+                          refX="10" refY="3.5" orient="auto">
+                    <polygon points="0 0, 10 3.5, 0 7" fill="#4F8EF7"/>
+                  </marker>
+                </defs>
+              </svg>
+
+              <!-- Annotation layer for zoom effects -->
+              <svg id="annotation-layer" class="diagram-overlay-svg" style="opacity:0;">
+                <!-- These will be animated by strokeDashoffset -->
+                <circle id="annotation-circle" cx="200" cy="200" r="80" stroke="#00E5FF" stroke-width="3" fill="none" />
+                <path id="annotation-arrow" d="M 200 120 Q 260 60 320 100" stroke="#00E5FF" stroke-width="3" fill="none" marker-end="url(#arrowhead)" />
+              </svg>
+          
+              <!-- Spatial pointer (pulsing dot + label) -->
+              <div id="spatial-pointer" class="spatial-pointer" style="display:none">
+                <div class="ptr-ring"></div>
+                <div class="ptr-dot"></div>
+                <div class="ptr-label"></div>
+              </div>
+              
+            </div>
+          </div>
+        
+          <!-- For table type diagrams — rendered as HTML not image -->
+          {% if scene.diagram_type == 'table' and scene.table_data %}
+          <div class="diagram-table-wrap">
+            <table class="diagram-table">
+              <thead>
+                <tr>{% for h in scene.table_data.headers %}<th>{{ h }}</th>{% endfor %}</tr>
+              </thead>
+              <tbody>
+                {% for i, row in enumerate(scene.table_data.rows) %}
+                <tr class="tbl-row" data-row="{{ i }}">
+                  {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% endif %}
+        
+        </div>
+        
+        <!-- Init overlays to match image dimensions -->
+        <script>
+        function initDiagramOverlays(img) {
+          const canvas = document.getElementById('diagram-canvas-overlay');
+          const svg = document.getElementById('diagram-svg-overlay');
+          const annLayer = document.getElementById('annotation-layer');
+          const w = img.offsetWidth, h = img.offsetHeight;
+          if (canvas) {
+              canvas.width = img.naturalWidth;
+              canvas.height = img.naturalHeight;
+              canvas.style.width = w + 'px';
+              canvas.style.height = h + 'px';
+          }
+          if (svg) {
+              svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+              svg.style.width = w + 'px';
+              svg.style.height = h + 'px';
+          }
+          if (annLayer) {
+              annLayer.setAttribute('viewBox', `0 0 ${w} ${h}`);
+              annLayer.style.width = w + 'px';
+              annLayer.style.height = h + 'px';
+              // Reposition annotation elements to center of actual image
+              const circle = document.getElementById('annotation-circle');
+              const arrow = document.getElementById('annotation-arrow');
+              if (circle) { circle.setAttribute('cx', w/2); circle.setAttribute('cy', h/2); circle.setAttribute('r', Math.min(w,h)*0.2); }
+              if (arrow) { arrow.setAttribute('d', `M ${w/2} ${h*0.3} Q ${w*0.6} ${h*0.1} ${w*0.8} ${h*0.2}`); }
+          }
+        }
+        </script>
+    </div>
+    {% endif %}
+
+    <!-- Takeaway bar -->
+    <div id="takeaway-bar">
+        <span class="takeaway-icon">💡</span>
+        <span class="takeaway-label inter">Key Takeaway</span>
+        <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     AVATAR
+════════════════════════════════════════════════════════ -->
+{% if scene.avatar_path %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+
+<!-- NOTE: Subtitles are burned by FFmpeg SRT (synced with audio) -->
+
+<!-- V12.5 Teacher Draw Layers -->
+{% include '_gsap_layers.html.j2' %}
+
+<!-- ── V12.5 GSAP Timeline Engine ── -->
+<script>
+    {% include '_timeline_engine.js.j2' %}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1 @@
+"""SmartStudyInstructor Backend Application"""

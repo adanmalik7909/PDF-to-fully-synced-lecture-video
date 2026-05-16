@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Teacher — Sessions</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:20px;background:#f5f6fa;color:#222}
+    header{display:flex;align-items:center;justify-content:space-between}
+    h1{margin:0 0 10px}
+    .card{background:#fff;padding:12px;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06);margin-bottom:12px}
+    .sessions{max-width:900px;margin-top:12px}
+    .session-item{display:flex;justify-content:space-between;align-items:center;padding:10px;border-bottom:1px solid #eee}
+    .btn{padding:8px 12px;background:#0b5cff;color:#fff;border:none;border-radius:6px;cursor:pointer}
+    .muted{color:#666}
+    .empty{padding:40px;text-align:center;color:#777}
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Teacher Dashboard — Sessions</h1>
+      <div class="muted">List of recent sessions. Click a session to view report and events.</div>
+    </div>
+    <div>
+      <button class="btn" id="refresh">Refresh</button>
+    </div>
+  </header>
+
+  <main class="sessions card" id="content">
+    <div id="list"></div>
+    <div id="empty" class="empty" style="display:none">No sessions found.</div>
+  </main>
+
+<script>
+  // Simple frontend that calls backend endpoints to fetch sessions.
+  // Assumes an API endpoint exists at /api/teacher/sessions returning
+  // [{id, session_name, started_at, ended_at, status, content_id}]
+
+  async function fetchSessions(){
+    try{
+      const res = await fetch('/api/teacher/sessions');
+      if(!res.ok) throw new Error('Failed to fetch');
+      const data = await res.json();
+      return data.sessions || data;
+    }catch(e){
+      console.error(e);
+      return null;
+    }
+  }
+
+  function renderList(items){
+    const container = document.getElementById('list');
+    container.innerHTML = '';
+    if(!items || items.length===0){
+      document.getElementById('empty').style.display = 'block';
+      return;
+    }
+    document.getElementById('empty').style.display = 'none';
+
+    items.forEach(s=>{
+      const el = document.createElement('div');
+      el.className = 'session-item';
+      el.innerHTML = `
+        <div>
+          <strong>${s.session_name}</strong><br>
+          <small class="muted">Started: ${new Date(s.started_at).toLocaleString()} • Status: ${s.status}</small>
+        </div>
+        <div>
+          <button class="btn" onclick="openReport(${s.id})">View Report</button>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+  }
+
+  function openReport(id){
+    // open session report in new tab
+    window.open(`/teacher/session/${id}`,'_blank');
+  }
+
+  async function init(){
+    document.getElementById('refresh').addEventListener('click', async ()=>{
+      const items = await fetchSessions(); renderList(items);
+    });
+    const items = await fetchSessions(); renderList(items);
+  }
+
+  init();
+</script>
+</body>
+</html>

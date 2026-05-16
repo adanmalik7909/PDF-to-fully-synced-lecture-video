@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — Intro Scene</title>
+    <style>
+        {% include '_base.css.j2' %}
+
+        /* Full centered intro layout */
+        .intro-center {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 80px 160px;
+            z-index: 10;
+        }
+        .intro-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(52px, 5.5vw, 80px);
+            font-weight: 800;
+            line-height: 1.12;
+            color: var(--white);
+            margin-bottom: 32px;
+        }
+        .intro-subtitle {
+            font-size: 26px;
+            color: rgba(255,255,255,0.65);
+            line-height: 1.6;
+            max-width: 900px;
+            margin-bottom: 50px;
+        }
+        .intro-tag {
+            display: inline-block;
+            background: rgba(201,185,154,0.15);
+            border: 1px solid rgba(201,185,154,0.4);
+            color: var(--gold);
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            padding: 10px 28px;
+            border-radius: 30px;
+            margin-bottom: 36px;
+        }
+        /* Large avatar for intro */
+        #intro-avatar {
+            position: absolute;
+            bottom: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        .avatar-ring-large {
+            width: 280px;
+            height: 280px;
+            border-radius: 50%;
+            border: 4px solid var(--gold);
+            box-shadow: 0 0 0 8px rgba(201,185,154,0.2), 0 30px 60px rgba(0,0,0,0.4);
+            background: var(--navy);
+            overflow: hidden;
+        }
+        .avatar-ring-large img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+    </style>
+    {% include '_gsap_head.html.j2' %}
+</head>
+<body>
+<script>window.TIMELINE_DATA = {{ timeline_data | tojson }};</script>
+
+<div id="analogy-overlay"></div>
+
+<!-- Background kb target -->
+<div id="kb-target" style="position: absolute; inset: 0; z-index: 0;"></div>
+
+<!-- Intro centered content -->
+<div class="intro-center">
+    <div class="intro-tag inter">{{ scene.topic }}</div>
+
+    <h1 class="intro-heading playfair slide-heading">
+        {% set heading = scene.heading_left %}
+        {% if scene.gold_word %}
+            {% set heading = heading | replace(scene.gold_word,
+                '<span class="gold-word">' ~ scene.gold_word ~ '</span>', 1) %}
+        {% endif %}
+        {{ heading | safe }}
+    </h1>
+
+    <p class="intro-subtitle inter">{{ scene.left_description or scene.narration[:180] | truncate(180) }}...</p>
+
+    <!-- Bullets as pills -->
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 20px;">
+        {% for bullet in scene.bullets[:4] %}
+        {% if bullet is mapping %}
+        <div class="bullet" data-index="{{ loop.index0 }}"
+             style="flex-direction: row; align-items: center; background: rgba(255,255,255,0.06);
+                    padding: 14px 28px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12);">
+            <div class="bullet-num" style="background: rgba(201,185,154,0.15); color: var(--gold);">{{ "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter" style="color: rgba(255,255,255,0.85); font-size: 18px; margin-left: 12px;">{{ bullet.text }}</div>
+        </div>
+        {% else %}
+        <div class="bullet" data-index="{{ loop.index0 }}"
+             style="flex-direction: row; align-items: center; background: rgba(255,255,255,0.06);
+                    padding: 14px 28px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12);">
+            <div class="bullet-num" style="background: rgba(201,185,154,0.15); color: var(--gold);">{{ "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter" style="color: rgba(255,255,255,0.85); font-size: 18px; margin-left: 12px;">{{ bullet }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+</div>
+
+{% if scene.avatar_path %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+
+<!-- NOTE: Subtitles burned by FFmpeg SRT -->
+
+<div id="takeaway-bar">
+    <span class="takeaway-label inter">Key Takeaway</span>
+    <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+</div>
+
+{% include '_gsap_layers.html.j2' %}
+
+<script>{% include '_timeline_engine.js.j2' %}</script>
+</body>
+</html>

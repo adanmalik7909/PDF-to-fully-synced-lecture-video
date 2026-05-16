@@ -1,0 +1,10 @@
+{# V13 — GSAP CDN includes (place in <head>)
+   NOTE: DrawSVGPlugin removed — it is a paid GSAP Club plugin, NOT on public CDNs.
+   SVG stroke animations now use standard strokeDasharray/strokeDashoffset. #}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/MotionPathPlugin.min.js"></script>
+<script>
+  if (typeof gsap !== 'undefined') {
+    if (typeof MotionPathPlugin !== 'undefined') gsap.registerPlugin(MotionPathPlugin);
+  }
+</script>

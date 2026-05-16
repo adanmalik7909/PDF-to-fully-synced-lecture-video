@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>LED Player - Session</title>
+  <style>
+    html,body{height:100%;margin:0;background:#111;color:#fff;font-family:Arial,Helvetica,sans-serif}
+    .container{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:20px}
+    .title{font-size:36px;margin-bottom:10px}
+    .section{max-width:1200px;width:100%;padding:30px;border-radius:8px;background:rgba(255,255,255,0.03);box-shadow:0 2px 10px rgba(0,0,0,0.5)}
+    .section h2{font-size:28px;margin:0 0 10px}
+    .section p{font-size:18px;line-height:1.4}
+    .controls{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);display:flex;gap:10px}
+    .btn{background:#0b5cff;border:none;padding:10px 18px;border-radius:6px;color:#fff;font-weight:600;cursor:pointer}
+    .timer{font-size:16px;margin-top:8px;color:#ddd}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="title">{{ session.session_name }}</div>
+    <div id="section" class="section">
+      <h2 id="sec-title">Loading...</h2>
+      <p id="sec-content"></p>
+      <ul id="sec-points"></ul>
+      <div class="timer" id="sec-timer"></div>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prev">Prev</button>
+      <button class="btn" id="play">Play</button>
+      <button class="btn" id="next">Next</button>
+    </div>
+  </div>
+
+<script>
+  const sections = {{ sections | tojson }} || [];
+  let idx = 0;
+  let playing = false;
+  let autoTimer = null;
+  let remaining = 0;
+
+  function renderSection(i){
+    if(!sections || sections.length === 0){
+      document.getElementById('sec-title').innerText = 'No lecture script available';
+      document.getElementById('sec-content').innerText = '';
+      document.getElementById('sec-points').innerHTML = '';
+      document.getElementById('sec-timer').innerText = '';
+      return;
+    }
+
+    const s = sections[i];
+    document.getElementById('sec-title').innerText = (s.section_number ? s.section_number + '. ' : '') + (s.title || 'Section');
+    document.getElementById('sec-content').innerText = s.content || '';
+    const points = s.key_points || [];
+    const ul = document.getElementById('sec-points');
+    ul.innerHTML = '';
+    points.forEach(p => {
+      const li = document.createElement('li'); li.innerText = p; ul.appendChild(li);
+    });
+
+    // Set timer if duration provided
+    if(s.duration_minutes){
+      remaining = s.duration_minutes * 60;
+      updateTimerDisplay();
+    } else {
+      remaining = 0;
+      document.getElementById('sec-timer').innerText = '';
+    }
+  }
+
+  function updateTimerDisplay(){
+    if(remaining <= 0){ document.getElementById('sec-timer').innerText = ''; return; }
+    const m = Math.floor(remaining/60); const s = remaining % 60;
+    document.getElementById('sec-timer').innerText = `Time remaining: ${m}m ${s}s`;
+  }
+
+  function startAuto(){
+    if(autoTimer) clearInterval(autoTimer);
+    playing = true; document.getElementById('play').innerText = 'Pause';
+    autoTimer = setInterval(()=>{
+      if(remaining>0){ remaining--; updateTimerDisplay(); }
+      else {
+        // advance
+        if(idx < sections.length -1){ idx++; renderSection(idx); }
+        else { stopAuto(); }
+      }
+    },1000);
+  }
+
+  function stopAuto(){
+    playing = false; document.getElementById('play').innerText = 'Play';
+    if(autoTimer) clearInterval(autoTimer); autoTimer = null;
+  }
+
+  document.getElementById('prev').addEventListener('click', ()=>{ if(idx>0) idx--; renderSection(idx); });
+  document.getElementById('next').addEventListener('click', ()=>{ if(idx<sections.length-1) idx++; renderSection(idx); });
+  document.getElementById('play').addEventListener('click', ()=>{ playing? stopAuto() : startAuto(); });
+
+  // init
+  renderSection(idx);
+</script>
+</body>
+</html>

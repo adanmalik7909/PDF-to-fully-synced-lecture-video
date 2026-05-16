@@ -1,0 +1,190 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Student Tuition - Demo</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f5f5f5; }
+    .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    h1 { color: #333; border-bottom: 2px solid #007bff; padding-bottom: 10px; }
+    h2 { color: #555; margin-top: 30px; margin-bottom: 15px; }
+    .form-section { background-color: #f9f9f9; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #007bff; }
+    label { display: block; font-weight: bold; margin: 10px 0 5px 0; color: #333; }
+    input, textarea, select { width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+    button { background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; margin-right: 10px; }
+    button:hover { background-color: #0056b3; }
+    button:disabled { background-color: #ccc; cursor: not-allowed; }
+    .response { background-color: #e8f4f8; padding: 15px; margin-top: 10px; border-left: 4px solid #007bff; border-radius: 4px; display: none; }
+    .response.show { display: block; }
+    .response.error { border-left-color: #dc3545; background-color: #f8d7da; color: #721c24; }
+    .response.success { border-left-color: #28a745; background-color: #d4edda; color: #155724; }
+    pre { background-color: #f4f4f4; padding: 10px; overflow-x: auto; border-radius: 4px; font-size: 12px; max-height: 300px; }
+    .status { padding: 12px; border-radius: 4px; margin-bottom: 20px; font-weight: bold; }
+    .status.ready { background-color: #d4edda; color: #155724; border: 1px solid #28a745; }
+    .status.loading { background-color: #fff3cd; color: #856404; border: 1px solid #ffc107; }
+    .spinner { display: inline-block; margin-right: 8px; }
+    textarea { height: 100px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📚 SmartStudyInstructor - Student Tuition Demo</h1>
+    <p>Interactive interface for testing tuition endpoints without authentication. Using demo content (ID=1).</p>
+    <div id="statusDiv" class="status loading"><span class="spinner">⏳</span>Loading system...</div>
+
+    <h2>1️⃣ Start Tuition Session</h2>
+    <div class="form-section">
+      <form id="start-session">
+        <label>Content ID: <input type="number" id="start-content-id" value="1" required></label>
+        <label>Session Name: <input id="start-name" value="My Tuition Session"></label>
+        <button type="submit">Start Session</button>
+      </form>
+      <div id="start-result" class="response"></div>
+    </div>
+
+    <h2>2️⃣ Ask a Question</h2>
+    <div class="form-section">
+      <form id="ask-form">
+        <label>Content ID: <input type="number" id="ask-content-id" value="1"></label>
+        <label>Question:</label>
+        <textarea id="question" placeholder="Ask anything about the content...">What are the key concepts?</textarea>
+        <label>Number of Results: <input type="number" id="ask-num" value="3" min="1" max="10"></label>
+        <button type="submit">Ask</button>
+      </form>
+      <div id="ask-result" class="response"></div>
+    </div>
+
+    <h2>3️⃣ Generate Quiz</h2>
+    <div class="form-section">
+      <form id="quiz-form">
+        <label>Content ID: <input type="number" id="quiz-content-id" value="1"></label>
+        <label>Number of Questions: <input type="number" id="quiz-num" value="5" min="1" max="20"></label>
+        <label>Difficulty: 
+          <select id="quiz-difficulty">
+            <option value="easy">Easy</option>
+            <option value="medium" selected>Medium</option>
+            <option value="hard">Hard</option>
+          </select>
+        </label>
+        <button type="submit">Generate Quiz</button>
+      </form>
+      <div id="quiz-result" class="response"></div>
+    </div>
+
+    <h2>4️⃣ Generate Study Notes</h2>
+    <div class="form-section">
+      <form id="notes-form">
+        <label>Content ID: <input type="number" id="notes-content-id" value="1"></label>
+        <button type="submit">Generate Notes</button>
+      </form>
+      <div id="notes-result" class="response"></div>
+    </div>
+  </div>
+
+<script>
+const base = '/tuition';
+
+function showResponse(elementId, data, isError = false) {
+  const elem = document.getElementById(elementId);
+  elem.innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+  elem.classList.add('show');
+  elem.classList.toggle('error', isError);
+  elem.classList.toggle('success', !isError);
+}
+
+function updateStatus(message, isLoading = false) {
+  const elem = document.getElementById('statusDiv');
+  elem.innerHTML = (isLoading ? '<span class="spinner">⏳</span>' : '<span>✓</span>') + ' ' + message;
+  elem.classList.toggle('loading', isLoading);
+  elem.classList.toggle('ready', !isLoading);
+}
+
+async function postJson(path, body) {
+  try {
+    const res = await fetch(base + path, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.detail || `HTTP ${res.status}`);
+    }
+    return data;
+  } catch (e) {
+    throw new Error(e.message);
+  }
+}
+
+// start session
+document.getElementById('start-session').addEventListener('submit', async e => {
+  e.preventDefault();
+  updateStatus('Starting session...', true);
+  try {
+    const content_id = Number(document.getElementById('start-content-id').value);
+    const session_name = document.getElementById('start-name').value;
+    const data = await postJson('/demo/session/start', { content_id, session_name });
+    showResponse('start-result', data, false);
+    updateStatus('Session started successfully!', false);
+  } catch (err) {
+    showResponse('start-result', { error: err.message }, true);
+    updateStatus('Error: ' + err.message, false);
+  }
+});
+
+// ask
+document.getElementById('ask-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  updateStatus('Asking question...', true);
+  try {
+    const content_id = Number(document.getElementById('ask-content-id').value);
+    const question = document.getElementById('question').value;
+    const num_results = Number(document.getElementById('ask-num').value);
+    const data = await postJson('/demo/ask', { content_id, question, num_results });
+    showResponse('ask-result', data, false);
+    updateStatus('Question answered!', false);
+  } catch (err) {
+    showResponse('ask-result', { error: err.message }, true);
+    updateStatus('Error: ' + err.message, false);
+  }
+});
+
+// quiz
+document.getElementById('quiz-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  updateStatus('Generating quiz...', true);
+  try {
+    const content_id = Number(document.getElementById('quiz-content-id').value);
+    const num_questions = Number(document.getElementById('quiz-num').value);
+    const difficulty = document.getElementById('quiz-difficulty').value;
+    const data = await postJson('/demo/quiz/generate', { content_id, num_questions, difficulty });
+    showResponse('quiz-result', data, false);
+    updateStatus('Quiz generated!', false);
+  } catch (err) {
+    showResponse('quiz-result', { error: err.message }, true);
+    updateStatus('Error: ' + err.message, false);
+  }
+});
+
+// notes
+document.getElementById('notes-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  updateStatus('Generating notes...', true);
+  try {
+    const content_id = Number(document.getElementById('notes-content-id').value);
+    const data = await postJson('/demo/notes/generate', { content_id });
+    showResponse('notes-result', data, false);
+    updateStatus('Notes generated!', false);
+  } catch (err) {
+    showResponse('notes-result', { error: err.message }, true);
+    updateStatus('Error: ' + err.message, false);
+  }
+});
+
+// Initialize
+window.addEventListener('load', () => {
+  updateStatus('System ready - demo endpoints available', false);
+});
+</script>
+</body>
+</html>

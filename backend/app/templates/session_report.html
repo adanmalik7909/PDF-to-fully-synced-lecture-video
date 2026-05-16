@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Session Report</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;padding:20px;background:#f7f8fb;color:#111}
+    .container{max-width:1100px;margin:0 auto}
+    .header{display:flex;justify-content:space-between;align-items:center}
+    .card{background:#fff;padding:14px;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,0.06);margin-top:12px}
+    .events{margin-top:10px}
+    .event{display:flex;gap:12px;align-items:center;padding:10px;border-bottom:1px solid #eee}
+    .thumb{width:120px;height:80px;object-fit:cover;border-radius:6px;border:1px solid #ddd}
+    .meta{font-size:14px;color:#444}
+    .muted{color:#777}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div>
+        <h2 id="title">Session Report</h2>
+        <div id="subtitle" class="muted">Details and cheating events</div>
+      </div>
+      <div>
+        <button onclick="window.history.back()" class="btn">Back</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div id="summary">Loading session summary...</div>
+    </div>
+
+    <div class="card events">
+      <h3>Cheating Events</h3>
+      <div id="events-list">Loading events...</div>
+    </div>
+  </div>
+
+<script>
+  // Expects session id in URL path: /teacher/session/{id}
+  const parts = window.location.pathname.split('/');
+  const sessionId = parts[parts.length-1] || parts[parts.length-2];
+
+  async function fetchSession(){
+    try{
+      const res = await fetch(`/api/session/${sessionId}`);
+      if(!res.ok) throw new Error('Failed to fetch session');
+      return await res.json();
+    }catch(e){console.error(e);return null}
+  }
+
+  async function fetchEvents(){
+    try{
+      // Assumes backend endpoint /vision/events?session_id={}
+      const res = await fetch(`/vision/events?session_id=${sessionId}`);
+      if(!res.ok) throw new Error('Failed to fetch events');
+      return await res.json();
+    }catch(e){console.error(e);return []}
+  }
+
+  function renderSummary(s){
+    if(!s){ document.getElementById('summary').innerText = 'Session not found'; return }
+    document.getElementById('title').innerText = s.session_name;
+    const html = `
+      <div class="muted">Started: ${new Date(s.started_at).toLocaleString()} • Status: ${s.status}</div>
+      <p>Content: ${s.content_title || 'N/A'}</p>
+      <div><strong>Duration:</strong> ${s.duration_minutes || 'N/A'} minutes</div>
+    `;
+    document.getElementById('summary').innerHTML = html;
+  }
+
+  function renderEvents(list){
+    const container = document.getElementById('events-list');
+    container.innerHTML = '';
+    if(!list || list.length===0){ container.innerHTML = '<div class="muted">No events recorded.</div>'; return }
+
+    list.forEach(e=>{
+      const div = document.createElement('div'); div.className='event';
+      const img = document.createElement('img'); img.className='thumb';
+      img.src = e.snapshot_path ? ('/' + e.snapshot_path) : '/static/placeholder.png';
+      const meta = document.createElement('div'); meta.className='meta';
+      meta.innerHTML = `<div><strong>${e.event_type}</strong> • Confidence: ${e.confidence.toFixed(2)}</div>
+                        <div class="muted">${new Date(e.timestamp).toLocaleString()}</div>`;
+      div.appendChild(img); div.appendChild(meta);
+      container.appendChild(div);
+    });
+  }
+
+  (async ()=>{
+    const s = await fetchSession(); renderSummary(s);
+    const events = await fetchEvents(); renderEvents(events.events || events || []);
+  })();
+</script>
+</body>
+</html>

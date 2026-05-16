@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor Diagram Focus</title>
+    <style>
+        {% include '_base.css.j2' %}
+        
+        .header {
+            position: absolute; top: 50px; left: 80px; width: 1760px;
+            font-size: clamp(42px, 5vw, 64px); font-weight: 800; color: var(--white);
+            text-align: center; letter-spacing: -1px; text-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            z-index: 10; font-family: 'Outfit';
+        }
+        
+        /* The main container acts as a massive frosted glass stage for the diagram */
+        .stage-container {
+            position: absolute; left: 80px; top: 160px; width: 1760px; height: 750px;
+            background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(24px);
+            border-radius: 40px; box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex; justify-content: center; align-items: center;
+            overflow: hidden; z-index: 5;
+        }
+
+        .diagram-wrapper { position: relative; width: 90%; height: 90%; display: flex; justify-content: center; align-items: center; gap: 40px; }
+        .diagram-img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 20px 30px rgba(0,0,0,0.15)); border-radius: 12px; }
+        
+        .callout {
+            position: absolute; border: 4px solid var(--accent); border-radius: 12px;
+            background: rgba(59, 130, 246, 0.1); backdrop-filter: blur(4px);
+            box-shadow: 0 0 0 9999px rgba(15, 23, 42, 0.4); /* Focus effect */
+            opacity: 0; transition: opacity 0.4s ease; display: flex; justify-content: center; align-items: flex-end; z-index: 20;
+        }
+        .callout-label {
+            background: var(--accent); color: var(--white); padding: 8px 20px;
+            border-radius: 20px; font-weight: 700; font-size: 20px;
+            transform: translateY(50%); font-family: 'Outfit'; letter-spacing: 1px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); white-space: nowrap;
+        }
+        
+        #takeaway-bar { width: 1760px; left: 80px; bottom: 80px; border-radius: 0 0 40px 40px; z-index: 10; }
+    </style>
+</head>
+<body data-duration="{{ scene.duration_sec }}">
+
+    <h1 class="header outfit" id="heading_left">{{ scene.heading_right }}</h1>
+    
+    <div class="stage-container">
+        {% if scene.diagram_paths %}
+            <div class="diagram-wrapper">
+                {% for path in scene.diagram_paths %}
+                <img src="{{ path }}" class="diagram-img" alt="Diagram {{ loop.index }}">
+                {% endfor %}
+                
+                {% for callout in scene.diagram_callouts %}
+                <div class="callout" id="callout_{{ loop.index0 }}" 
+                     style="left: {{ callout.bbox[0] * 100 }}%; top: {{ callout.bbox[1] * 100 }}%; 
+                            width: {{ callout.bbox[2] * 100 }}%; height: {{ callout.bbox[3] * 100 }}%;">
+                     <div class="callout-label">{{ callout.label }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
+        <!-- Takeaway Bar -->
+        <div id="takeaway-bar">
+            <div class="takeaway-label">Key Takeaway</div>
+            <div class="takeaway-text inter">{{ scene.takeaway }}</div>
+        </div>
+    </div>
+
+    <!-- Avatar Container (Small, Bottom Left) -->
+    {% if avatar_config.visible and scene.avatar_path %}
+    <div id="avatar-ring" style="position: absolute; bottom: 40px; left: 40px; width: 140px; height: 140px; z-index: 50;" class="avatar-ring">
+        <img src="{{ scene.avatar_path }}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
+    </div>
+    {% endif %}
+
+    <!-- Subtitle Container -->
+    <div id="subtitle-container" style="position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%); width: 80%; text-align: center; font-size: 38px; font-weight: 600; font-family: 'Inter', sans-serif; text-shadow: 2px 2px 8px rgba(0,0,0,0.8); z-index: 100; opacity: 0; transition: opacity 0.2s;">
+    </div>
+
+    <script>
+        {{ JS_BRIDGE | safe }}
+    </script>
+</body>
+</html>
