@@ -1,0 +1,152 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<!-- KaTeX styles pinned to public CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"></script>
+<style>
+    .math-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: var(--navy);
+        padding: 50px 80px;
+    }
+    
+    .worked-stage {
+        flex-grow: 1;
+        background: rgba(12, 18, 35, 0.95);
+        border-radius: 24px;
+        border: 1px solid rgba(212, 168, 83, 0.3);
+        margin-top: 30px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        overflow: hidden;
+    }
+    
+    .formula-display {
+        font-size: 54px;
+        color: var(--white);
+        margin-bottom: 40px;
+        text-shadow: 0 0 20px rgba(255,255,255,0.1);
+        padding: 20px 40px;
+        border-radius: 12px;
+        background: rgba(255,255,255,0.02);
+        transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+        transform-origin: center center;
+    }
+    
+    .variable-legend {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        flex-wrap: wrap;
+        max-width: 900px;
+        z-index: 10;
+    }
+    
+    .legend-card {
+        background: rgba(247, 245, 240, 0.96);
+        color: var(--dark-text);
+        padding: 12px 20px;
+        border-radius: 10px;
+        box-shadow: var(--shadow-md);
+        font-family: 'Inter', sans-serif;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        opacity: 0;
+        transform: translateY(15px);
+        transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .legend-card.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .legend-symbol {
+        font-family: 'Playfair Display', serif;
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--blue-dark);
+        border-right: 2px solid var(--gold);
+        padding-right: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="math-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <div class="topic-chip" style="margin-bottom: 12px;">{{ scene.topic }}</div>
+            <h1 class="slide-heading playfair" style="margin-bottom: 0;">{{ scene.heading_right or scene.heading_left }}</h1>
+        </div>
+        <div class="scene-counter" style="position: static; padding-top: 15px;">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    <div class="worked-stage">
+        
+        <!-- Large centralized KaTeX formula display viewport -->
+        <div class="formula-viewport" id="diagram-viewport" style="display:flex; justify-content:center; align-items:center; width:100%; height:300px; transform-origin:center center;">
+            <div class="formula-display" id="katex-target">
+                <!-- Fallback plain text before compile -->
+                {{ scene.equation_data.latex if scene.equation_data else '' }}
+            </div>
+            
+            <!-- Standard dynamic underline SVG overlay -->
+            <svg id="diagram-svg-overlay" style="position:absolute; width:100%; height:300px; pointer-events:none; z-index:15; overflow:visible;">
+                <path id="term-underline" d="" stroke="#FFD700" stroke-width="4" stroke-linecap="round" fill="none" style="transition: all 0.5s ease; opacity: 0; filter: drop-shadow(0 0 6px #FFD700);"/>
+            </svg>
+        </div>
+        
+        <!-- Variable breakdown cards legend -->
+        <div class="variable-legend">
+            {% if scene.equation_data and scene.equation_data.variables %}
+                {% for var in scene.equation_data.variables %}
+                <div class="legend-card" id="bullet_{{ loop.index0 }}" data-index="{{ loop.index0 }}">
+                    <div class="legend-symbol">{{ var.symbol }}</div>
+                    <div class="legend-text" style="font-weight: 600; font-size: 15px;">{{ var.meaning }}</div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        
+        <!-- Takeaway bar -->
+        <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: var(--navy); color: var(--white); padding: 16px 40px; display: flex; gap: 16px; align-items: center; border-top: 2px solid var(--gold); z-index: 25;">
+            <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 13px; text-transform: uppercase;">Key Takeaway</span>
+            <span class="takeaway-text inter" style="font-size: 15px;">{{ scene.takeaway }}</span>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const target = document.getElementById("katex-target");
+    if (target && typeof katex !== 'undefined') {
+        const rawLatex = target.textContent.trim();
+        try {
+            katex.render(rawLatex, target, {
+                displayMode: true,
+                throwOnError: false
+            });
+        } catch (e) {
+            console.error("KaTeX failed to render: ", e);
+        }
+    }
+});
+</script>
+{% endblock %}

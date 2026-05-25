@@ -159,13 +159,12 @@
                 <div class="step-card-num">{{ "%02d"|format(loop.index) }}</div>
                 <div class="step-card-text inter">
                     {% set btext = bullet.text or '' %}
-                    {% set wrapped = btext | wordwrap_spans %}
                     {% if bullet.zoom_word %}
-                        {% set wrapped = wrapped | replace(bullet.zoom_word,
+                        {% set btext = btext | replace(bullet.zoom_word,
                             '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">'
                             ~ bullet.zoom_word ~ '</span>', 1) %}
                     {% endif %}
-                    {{ wrapped | safe }}
+                    {{ btext | wordwrap_spans | safe }}
                 </div>
             </div>
             {% else %}
@@ -246,7 +245,7 @@
     </div>
 </div>
 
-{% if scene.avatar_path %}
+{% if scene.avatar_path and not (scene.avatar_config and scene.avatar_config.hidden_for_ffmpeg) %}
 <div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
 <img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
 {% endif %}

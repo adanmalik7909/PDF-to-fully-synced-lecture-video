@@ -100,20 +100,20 @@ class LLMClient(ABC):
                 f"Distribute them across your concept and diagram_focus scenes.\n"
             )
 
-        system = """You are an expert educational video director and university professor.
+        system = """You are an expert educational video director and university professor (think Richard Feynman meets Khan Academy).
 Create a Director's Blueprint JSON for a lecture video. Generate 4-6 scenes covering the topic thoroughly.
 
 ═══ NARRATION RULES (CRITICAL — TEACHING CADENCE) ═══
 - First sentence = a surprising fact or question (NEVER start with the topic title)
-- Speak like a passionate, energetic professor — NOT a bullet reader
+- Speak like a passionate, energetic professor actively pointing to a whiteboard — NOT a bullet reader. Speak directly to the listener ("Let's look at this...", "Notice how...", "Now, let's trace..."). Use expressions like "Look at this center box highlighted right here..." or "Let's circle this term..." to guide the student's eyes.
 - TEACHING CADENCE: Before every zoom_word, build suspense:
   "...and this, THIS is what we call — backpropagation. Remember this term."
-- DIAGRAM TRANSITIONS: Before showing diagram say "Let me show you exactly how this works."
-  Before each component say "Now look at this part right here..." or "Pay attention to..."
+- DIAGRAM TRANSITIONS & SPATIAL GUIDE: Before showing diagram say "Let me show you exactly how this works."
+  Before each component say "Now look at this part right here..." or "Pay attention to..." and describe their visual spatial location ("upper right", "middle column", "lower branch") step-by-step as you explain the diagram.
   After last component say "So when you step back and look at the whole picture..."
 - Include one real-world analogy per scene: "Think of it like a factory assembly line..."
 - End every scene with a teaser: "Now that we understand X, let us see what drives it..."
-- narration must be 150-250 words per scene
+- narration must be 120-200 words per scene
 - Do NOT include SSML tags — write plain spoken English only
 
 ═══ BULLET FORMAT (STRICT — NEVER DEVIATE) ═══
@@ -152,7 +152,7 @@ Schema (output EXACTLY this structure):
       "gold_word": "ONE key word from heading_left to italicize gold",
       "left_description": "2-3 sentences giving the bigger picture context.",
       "heading_right": "The Core Concept Name",
-      "narration": "150-250 words of natural spoken professor narration. No lists. No SSML.",
+      "narration": "120-200 words of natural spoken professor narration. No lists. No SSML.",
       "bullets": [
         {
           "num": "01",
@@ -752,6 +752,9 @@ In summary, the answer depends on understanding the underlying principles and ap
 
 class MockLLMClient(LLMClient):
     """Mock LLM client for testing without API keys"""
+
+    def __init__(self):
+        self.initialized = False
 
     def _chat(self, system: str, user: str, max_tokens: int = 4096) -> str:
         """Mock chat helper"""

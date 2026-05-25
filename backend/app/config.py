@@ -67,6 +67,17 @@ class Settings(BaseSettings):
     # Kaggle Distributed Cloud Rendering
     CLOUD_RENDER_URL: str = ""
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Clean up any potential copy-paste whitespaces from env vars
+        for attr in ["CLOUD_RENDER_URL", "COLAB_ECHOMIMIC_URL", "COLAB_AVATAR_URL", "COLAB_SADTALKER_URL"]:
+            val = getattr(self, attr, None)
+            if isinstance(val, str):
+                cleaned = val.strip()
+                if cleaned != val:
+                    print(f"⚠️ [Config] Cleaned leading/trailing whitespace from {attr}!")
+                setattr(self, attr, cleaned)
+
     class Config:
         env_file = ".env"
         case_sensitive = True

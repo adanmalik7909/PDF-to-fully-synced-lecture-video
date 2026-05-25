@@ -1,0 +1,134 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<style>
+    .analogy-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: var(--navy);
+    }
+    
+    .panel-analogy {
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.02);
+        border-right: 1px dashed rgba(255,255,255,0.12);
+        position: relative;
+    }
+    
+    .panel-concept {
+        background: var(--cream);
+        color: var(--dark-text);
+        padding: 80px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .panel-concept.reveal-active {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    
+    .analogy-showcase-box {
+        border: 2px solid var(--gold);
+        background: rgba(212, 168, 83, 0.04);
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+        margin-top: 40px;
+        position: relative;
+    }
+    
+    #bridge-vector-svg {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 30;
+        width: 160px;
+        height: 80px;
+        pointer-events: none;
+        overflow: visible;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="analogy-grid">
+    
+    <!-- LEFT PANEL: Analogous Story Scenario -->
+    <div class="panel-analogy" id="analogy-panel-target">
+        <div class="topic-chip">{{ scene.topic }}</div>
+        
+        <h1 class="slide-heading playfair" style="font-size: 40px;">
+            {{ scene.heading_left }}
+        </h1>
+        
+        <p class="slide-description inter">
+            {{ scene.left_description }}
+        </p>
+        
+        <div class="analogy-showcase-box">
+            <h3 class="playfair" style="color: var(--gold); font-size: 22px; margin-bottom: 12px;">🌟 Familiar Metaphor</h3>
+            <div class="inter" style="font-size: 17px; line-height: 1.6; color: rgba(255,255,255,0.85);">
+                {{ scene.analogy if scene.analogy else 'A concrete everyday analogy to scaffold understanding.' }}
+            </div>
+            
+            {% if scene.diagram_paths %}
+            <div style="margin-top: 20px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid rgba(212,168,83,0.3);">
+                <img src="{{ scene.diagram_paths[0] }}" alt="Analogy Metaphor Visual" style="width: 100%; max-height: 200px; object-fit: cover; filter: brightness(0.9) contrast(1.1);">
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="scene-counter">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    <!-- RIGHT PANEL: Abstract Target Concept -->
+    <div class="panel-concept" id="concept-panel-target">
+        <div class="progress-strip">
+            <div class="progress-fill" style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+        </div>
+        
+        <h2 class="slide-heading-right playfair" style="font-size: 38px; color: var(--navy); margin-bottom: 24px;">
+            {{ scene.heading_right }}
+        </h2>
+        
+        <div style="background: rgba(26, 37, 53, 0.03); border-left: 4px solid var(--blue-dark); padding: 24px; border-radius: 0 12px 12px 0; box-shadow: var(--shadow-sm); margin-bottom: 30px;">
+            <h4 class="playfair" style="color: var(--navy); font-size: 20px; margin-bottom: 8px;">🚀 The Abstract Principle</h4>
+            <div class="inter" style="font-size: 16px; line-height: 1.6; color: var(--dark-text);">
+                {{ scene.bullets[0].text if scene.bullets else 'Resolves the abstract concept side by side.' }}
+            </div>
+        </div>
+        
+        <!-- Key Takeaway bar -->
+        <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: var(--navy); color: var(--white); padding: 18px 40px; display: flex; gap: 16px; align-items: center; border-top: 2px solid var(--gold);">
+            <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 14px; text-transform: uppercase;">Key Takeaway</span>
+            <span class="takeaway-text inter" style="font-size: 16px; font-weight: 500;">{{ scene.takeaway }}</span>
+        </div>
+    </div>
+    
+    <!-- Climax Metaphor Bridge Vector Arrow -->
+    <svg id="bridge-vector-svg" viewBox="0 0 160 80">
+        <defs>
+            <marker id="bridge-arrowhead" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto">
+                <polygon points="0 0, 6 3, 0 6" fill="#D4A853"/>
+            </marker>
+        </defs>
+        <path id="bridge-path" d="M 10 40 C 40 10, 120 10, 150 40" stroke="#D4A853" stroke-width="4" stroke-linecap="round" fill="none" marker-end="url(#bridge-arrowhead)" stroke-dasharray="200" stroke-dashoffset="200" style="transition: stroke-dashoffset 1s ease; filter: drop-shadow(0 0 4px #D4A853);"/>
+    </svg>
+    
+</div>
+{% endblock %}

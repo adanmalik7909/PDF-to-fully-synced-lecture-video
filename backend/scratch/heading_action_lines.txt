@@ -1,0 +1,4 @@
+Line 123: /*  heading_action: GSAP smooth entrance  */
+Line 983: /* heading_action with specific action_type  only handle zoom/underline sub-types
+Line 984: (the basic heading_action entrance is already handled above at line ~97) */
+Line 985: if (t === 'heading_action' && d.action_type) {

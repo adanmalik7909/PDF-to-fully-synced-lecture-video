@@ -1,0 +1,203 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<style>
+    :root {
+        --col-left: 35%;
+        --col-right: 65%;
+    }
+    
+    .definition-grid {
+        display: grid;
+        grid-template-columns: var(--col-left) var(--col-right);
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    
+    /* Override base .left-panel absolute positioning to work with CSS grid */
+    .definition-grid .left-panel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        left: auto;
+        top: auto;
+    }
+    
+    .definition-visual {
+        background: var(--cream);
+        color: var(--dark-text);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-start;
+        padding: 55px 60px 100px 60px;
+        position: relative;
+        border-left: 2px solid var(--gold);
+        overflow: hidden;
+    }
+    
+    .right-content-row {
+        display: flex;
+        gap: 30px;
+        flex: 1;
+        align-items: flex-start;
+    }
+    
+    .bullets-col {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .diagram-col {
+        flex-shrink: 0;
+        width: 340px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .diagram-float-card {
+        width: 100%;
+        background: var(--white);
+        border-radius: 16px;
+        box-shadow: var(--shadow-lg);
+        border: 1px solid rgba(212, 168, 83, 0.25);
+        overflow: hidden;
+        opacity: 0;
+        transform: translateX(30px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    
+    .diagram-float-card.diag-visible {
+        opacity: 1 !important;
+        transform: translateX(0) !important;
+    }
+    
+    .diagram-float-header {
+        background: linear-gradient(135deg, var(--navy), var(--navy-light));
+        padding: 8px 14px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .diagram-float-header span {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.6);
+        font-family: 'Inter';
+    }
+    
+    .diagram-float-body {
+        padding: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 220px;
+        max-height: 380px;
+    }
+    
+    .diagram-float-body img {
+        max-width: 100%;
+        max-height: 340px;
+        object-fit: contain;
+        border-radius: 6px;
+    }
+    
+    .bullets-zone {
+        margin-top: 20px;
+    }
+    
+    .bullet {
+        opacity: 0;
+        margin-bottom: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="definition-grid">
+    
+    <!-- LEFT PANEL: Dark Socratic Definition -->
+    <div class="left-panel">
+        <div class="topic-chip">{{ scene.topic }}</div>
+        
+        <h1 class="slide-heading playfair" id="heading-left">
+            {% set heading = scene.heading_left %}
+            {% if scene.gold_word %}
+                {% set heading = heading | replace(scene.gold_word, '<span class="gold-word">' ~ scene.gold_word ~ '</span>', 1) %}
+            {% endif %}
+            {{ heading | safe }}
+        </h1>
+        
+        <p class="slide-description inter">
+            {{ scene.left_description }}
+        </p>
+        
+        <div class="scene-counter">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    <!-- RIGHT PANEL: Content + Diagram Showcase -->
+    <div class="definition-visual">
+        <div class="progress-strip">
+            <div class="progress-fill" style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+        </div>
+        
+        <h2 class="slide-heading-right playfair" style="font-size: 36px; color: var(--navy); margin-bottom: 10px;">
+            {{ scene.heading_right }}
+        </h2>
+        <div class="gold-divider" style="width: 60px; height: 3px; background: var(--gold); margin-bottom: 20px;"></div>
+        
+        <div class="right-content-row">
+            <!-- Bullets Column -->
+            <div class="bullets-col">
+                <div class="bullets-zone">
+                    {% for bullet in scene.bullets %}
+                    <div class="bullet" id="bullet_{{ loop.index0 }}" data-index="{{ loop.index0 }}" style="display: flex; gap: 14px; align-items: flex-start;">
+                        <div class="bullet-num" style="background: var(--navy); color: var(--white); font-weight: 700; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;">
+                            {{ bullet.num }}
+                        </div>
+                        <div class="bullet-text inter" style="font-size: 18px; font-weight: 500; line-height: 1.5; color: var(--dark-text); padding-top: 3px;">
+                            {% set btext = bullet.text %}
+                            {% if bullet.zoom_word %}
+                                {% set btext = btext | replace(bullet.zoom_word, '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">' ~ bullet.zoom_word ~ '</span>', 1) %}
+                            {% endif %}
+                            {{ btext | wordwrap_spans | safe }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Diagram Column (only when diagrams exist) -->
+            {% if scene.diagram_paths %}
+            <div class="diagram-col">
+                <div class="diagram-float-card" id="diagram-card">
+                    <div class="diagram-float-header">
+                        <div class="diagram-dot red" style="width:8px;height:8px;border-radius:50%;background:#FF5F57;"></div>
+                        <div class="diagram-dot amber" style="width:8px;height:8px;border-radius:50%;background:#FEBC2E;"></div>
+                        <div class="diagram-dot green" style="width:8px;height:8px;border-radius:50%;background:#28C840;"></div>
+                        <span>Visual Reference</span>
+                    </div>
+                    <div class="diagram-float-body">
+                        <img id="diagram-img" src="{{ scene.diagram_paths[0] }}" alt="Diagram">
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Key Takeaway card anchoring definition -->
+        <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: var(--navy); color: var(--white); padding: 16px 40px; display: flex; gap: 16px; align-items: center; border-top: 2px solid var(--gold);">
+            <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 13px; text-transform: uppercase;">Key Takeaway</span>
+            <span class="takeaway-text inter" style="font-size: 15px; font-weight: 500;">{{ scene.takeaway }}</span>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}

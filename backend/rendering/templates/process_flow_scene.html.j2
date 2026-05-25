@@ -1,0 +1,182 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<style>
+    .process-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: var(--navy);
+        padding: 50px 80px;
+    }
+    
+    .process-stage {
+        position: relative;
+        width: 100%;
+        height: 640px;
+        background: rgba(12, 18, 35, 0.95);
+        border-radius: 24px;
+        border: 1px solid rgba(79,142,247,0.3);
+        overflow: hidden;
+        margin-top: 30px;
+    }
+    
+    #diagram-viewport {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-origin: center center;
+        will-change: transform;
+    }
+    
+    #diagram-img {
+        max-width: 90%;
+        max-height: 90%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    
+    #diagram-canvas-overlay,
+    #diagram-svg-overlay {
+        position: absolute;
+        top: 0; left: 0;
+        pointer-events: none;
+        z-index: 15;
+    }
+    
+    .process-step-labels {
+        position: absolute;
+        bottom: 30px;
+        left: 0; right: 0;
+        display: flex;
+        justify-content: space-around;
+        padding: 0 60px;
+        z-index: 20;
+    }
+    
+    .step-card {
+        background: rgba(247, 245, 240, 0.96);
+        color: var(--dark-text);
+        padding: 12px 24px;
+        border-radius: 12px;
+        border-left: 4px solid var(--blue);
+        box-shadow: var(--shadow-md);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Inter', sans-serif;
+        opacity: 0.6;
+        transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .step-card.active {
+        opacity: 1;
+        transform: scale(1.05);
+        border-left-color: var(--gold);
+        box-shadow: 0 0 20px rgba(212,168,83,0.35);
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="process-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <div class="topic-chip" style="margin-bottom: 12px;">{{ scene.topic }}</div>
+            <h1 class="slide-heading playfair" style="margin-bottom: 0;">{{ scene.heading_right or scene.heading_left }}</h1>
+        </div>
+        <div class="scene-counter" style="position: static; padding-top: 15px;">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    <div class="process-stage" id="diag-stage">
+        {% if scene.diagram_paths %}
+        <div id="diagram-viewport">
+            <img id="diagram-img" src="{{ scene.diagram_paths[0] }}" alt="Process Flow Diagram" onload="_initDiagramOverlays(this)">
+            
+            <canvas id="diagram-canvas-overlay"></canvas>
+            <svg id="diagram-svg-overlay">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#4F8EF7"/>
+                    </marker>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+            </svg>
+        </div>
+        {% else %}
+        <div style="color: rgba(255,255,255,0.4); font-size: 24px; display:flex; align-items:center; justify-content:center; height:100%">
+            Rendered process steps from A to B sequentially.
+        </div>
+        {% endif %}
+        
+        <!-- Step Cards dynamic overlay below -->
+        <div class="process-step-labels">
+            {% for bullet in scene.bullets %}
+            <div class="step-card" id="bullet_{{ loop.index0 }}" data-index="{{ loop.index0 }}">
+                <div class="step-num" style="background: var(--navy); color: var(--white); font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px;">
+                    {{ loop.index }}
+                </div>
+                <div class="step-text" style="font-weight: 600; font-size: 16px;">
+                    {{ bullet.text }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Takeaway bar -->
+        <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(90deg, var(--navy-light), var(--navy)); border-top: 1px solid rgba(79,142,247,0.3); padding: 12px 40px; display: flex; align-items: center; gap: 16px;">
+            <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 12px;">Key Takeaway</span>
+            <span class="takeaway-text inter" style="color: var(--white); font-size: 15px;">{{ scene.takeaway }}</span>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let fabricCanvas = null;
+
+function _initDiagramOverlays(img) {
+    const canvasEl = document.getElementById('diagram-canvas-overlay');
+    const svg = document.getElementById('diagram-svg-overlay');
+    if (!canvasEl || !svg) return;
+
+    const width = img.naturalWidth || img.offsetWidth || 800;
+    const height = img.naturalHeight || img.offsetHeight || 600;
+
+    canvasEl.width = width;
+    canvasEl.height = height;
+    canvasEl.style.width = img.offsetWidth + 'px';
+    canvasEl.style.height = img.offsetHeight + 'px';
+    canvasEl.style.left = img.offsetLeft + 'px';
+    canvasEl.style.top = img.offsetTop + 'px';
+
+    svg.setAttribute('viewBox', `0 0 ${img.offsetWidth} ${img.offsetHeight}`);
+    svg.style.width = img.offsetWidth + 'px';
+    svg.style.height = img.offsetHeight + 'px';
+    svg.style.left = img.offsetLeft + 'px';
+    svg.style.top = img.offsetTop + 'px';
+
+    if (window.fabric) {
+        window.fabricCanvas = new fabric.StaticCanvas('diagram-canvas-overlay', {
+            width: width,
+            height: height
+        });
+        fabricCanvas = window.fabricCanvas;
+    }
+}
+</script>
+{% endblock %}

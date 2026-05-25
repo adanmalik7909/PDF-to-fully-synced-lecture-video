@@ -13,7 +13,7 @@ import time
 import json
 import requests
 
-BASE = "http://localhost:8000/api/pipeline"
+BASE = "http://localhost:8000/api/blueprint"
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def ok(label, resp):
@@ -43,7 +43,7 @@ def create_dummy_pdf(path):
 
 def main():
     print("=" * 60)
-    print("  SmartStudyInstructor — Pipeline Integration Test")
+    print("  SmartStudyInstructor — V14 Pipeline Integration Test")
     print("=" * 60)
 
     # ── Step 0: Create test PDF ───────────────────────────────────────────────
@@ -60,77 +60,46 @@ def main():
                 print("[FAIL] No PDF available for testing. Install reportlab or place a PDF in static/uploads/pdfs/")
                 sys.exit(1)
 
-    print(f"\n[1] UPLOAD — {os.path.basename(pdf_path)}")
+    print(f"\n[1] GENERATE DRAFT — {os.path.basename(pdf_path)}")
     with open(pdf_path, "rb") as f:
-        r = requests.post(f"{BASE}/upload", files={"file": (os.path.basename(pdf_path), f, "application/pdf")})
-    if not ok("POST /upload", r):
+        r = requests.post(f"{BASE}/generate-draft", files={"file": (os.path.basename(pdf_path), f, "application/pdf")})
+    if not ok("POST /generate-draft", r):
         sys.exit(1)
+    
     data = r.json()
-    doc_id = data["doc_id"]
-    print(f"     doc_id = {doc_id}")
-
-    print(f"\n[2] RAG STATUS — polling for completion (max 60s)…")
-    start = time.time()
-    while time.time() - start < 60:
-        r = requests.get(f"{BASE}/rag-status/{doc_id}")
-        s = r.json()
-        status = s.get("rag_status")
-        print(f"     status={status}  pages={s.get('pages',0)}  chunks={s.get('chunks',0)}")
-        if status == "completed":
-            break
-        if status == "failed":
-            print("  [FAIL] RAG ingestion failed"); sys.exit(1)
-        time.sleep(3)
-
-    print(f"\n[3] GENERATE SCRIPT")
-    r = requests.post(f"{BASE}/generate-script/{doc_id}")
-    if not ok("POST /generate-script", r):
-        # Non-fatal — may be mock
-        script = "Test lecture script about machine learning fundamentals."
-    else:
-        script = r.json()["script"]
-        wc = len(script.split())
-        print(f"     {wc} words generated")
-
-    print(f"\n[4] GENERATE AUDIO")
-    r = requests.post(f"{BASE}/generate-audio",
-                      json={"script": script[:500], "doc_id": doc_id},  # shorter for speed
-                      headers={"Content-Type": "application/json"})
-    if not ok("POST /generate-audio", r):
-        print("  ⚠ Audio generation failed (check gTTS connectivity)")
-    else:
-        print(f"     audio_url = {r.json().get('audio_url')}")
-
-    print(f"\n[5] GENERATE VIDEO")
-    r = requests.post(f"{BASE}/generate-video/{doc_id}",
-                      json={"script": script},
-                      headers={"Content-Type": "application/json"})
-    if not ok("POST /generate-video (start)", r):
+    blueprint = data.get("blueprint")
+    if not blueprint:
+        print("[FAIL] Blueprint not returned.")
         sys.exit(1)
-    job_id = r.json()["job_id"]
+    
+    scenes_count = len(blueprint.get("scenes", []))
+    print(f"     Blueprint generated with {scenes_count} scenes.")
+
+    print(f"\n[2] ASSEMBLE VIDEO")
+    r = requests.post(f"{BASE}/assemble", data={"blueprint_data": json.dumps(blueprint)})
+    if not ok("POST /assemble", r):
+        sys.exit(1)
+        
+    job_id = r.json().get("job_id")
     print(f"     job_id = {job_id}")
 
     print("     Polling video status…")
     start = time.time()
     while time.time() - start < 300:
-        r = requests.get(f"{BASE}/video-status/{job_id}")
+        r = requests.get(f"{BASE}/status/{job_id}")
         s = r.json()
-        print(f"     [{int(time.time()-start)}s] {s['status']}  {s['progress']}%  — {s['message']}")
-        if s["status"] == "completed":
-            print(f"\n  [OK]  video_url = {s['video_url']}")
+        status = s.get('status')
+        progress = s.get('progress', 0)
+        current_step = s.get('current_step', '')
+        
+        print(f"     [{int(time.time()-start)}s] {status}  {progress}%  — {current_step}")
+        if status == "completed":
+            print(f"\n  [OK]  video_url = {s.get('video_url')}")
             break
-        if s["status"] == "failed":
-            print(f"\n  [FAIL]  Video failed: {s['message']}")
+        if status == "failed":
+            print(f"\n  [FAIL]  Video failed: {s.get('error')}")
             break
         time.sleep(5)
-
-    print(f"\n[6] ASK Q&A")
-    r = requests.post(f"{BASE}/ask",
-                      json={"question": "What is machine learning?", "doc_id": doc_id},
-                      headers={"Content-Type": "application/json"})
-    if ok("POST /ask", r):
-        answer = r.json().get("answer", "")
-        print(f"     Answer ({len(answer)} chars): {answer[:150]}…")
 
     print("\n" + "=" * 60)
     print("  Test Complete!")

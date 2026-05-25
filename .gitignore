@@ -32,6 +32,10 @@ backend/temp_audio/
 backend/temp_video/
 backend/temp/
 backend/media_cache/
+backend/static/uploads/
+
+# Logs
+*.log
 
 # Compressed Archives
 *.zip

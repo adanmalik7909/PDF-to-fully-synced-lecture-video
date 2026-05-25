@@ -18,6 +18,7 @@
 <!-- ── TIMELINE DATA (injected by Python before page load) ── -->
 <script>
     window.TIMELINE_DATA = {{ timeline_data | tojson }};
+    window.DIAGRAM_DATA = {{ scene.diagram_data | default({}) | tojson }};
 </script>
 
 <!-- ── Analogy background overlay ── -->
@@ -73,13 +74,12 @@
             <div class="bullet-num">{{ bullet.num or "%02d"|format(loop.index) }}</div>
             <div class="bullet-text inter">
                 {% set btext = bullet.text or '' %}
-                {% set wrapped = btext | wordwrap_spans %}
                 {% if bullet.zoom_word %}
-                    {% set wrapped = wrapped | replace(bullet.zoom_word,
+                    {% set btext = btext | replace(bullet.zoom_word,
                         '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">'
                         ~ bullet.zoom_word ~ '</span>', 1) %}
                 {% endif %}
-                {{ wrapped | safe }}
+                {{ btext | wordwrap_spans | safe }}
             </div>
         </div>
         {% else %}
@@ -127,6 +127,10 @@
                           refX="10" refY="3.5" orient="auto">
                     <polygon points="0 0, 10 3.5, 0 7" fill="#4F8EF7"/>
                   </marker>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
                 </defs>
               </svg>
 
@@ -155,11 +159,11 @@
                 <tr>{% for h in scene.table_data.headers %}<th>{{ h }}</th>{% endfor %}</tr>
               </thead>
               <tbody>
-                {% for i, row in enumerate(scene.table_data.rows) %}
-                <tr class="tbl-row" data-row="{{ i }}">
-                  {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
-                </tr>
-                {% endfor %}
+                 {% for row in scene.table_data.rows %}
+                 <tr class="tbl-row" data-row="{{ loop.index0 }}">
+                   {% for cell in row %}<td>{{ cell }}</td>{% endfor %}
+                 </tr>
+                 {% endfor %}
               </tbody>
             </table>
           </div>
@@ -211,7 +215,7 @@
 <!-- ════════════════════════════════════════════════════════
      AVATAR
 ════════════════════════════════════════════════════════ -->
-{% if scene.avatar_path %}
+{% if scene.avatar_path and not (scene.avatar_config and scene.avatar_config.hidden_for_ffmpeg) %}
 <div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
 <img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
 {% endif %}

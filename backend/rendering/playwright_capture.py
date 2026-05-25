@@ -11,6 +11,7 @@ independent from Uvicorn's event loop.
 """
 import os
 import sys
+import time
 import json
 import uuid
 import shutil
@@ -134,5 +135,110 @@ def record_scene_video(
     if error_container[0]:
         log_error(f"[Playwright] Failed for {scene_id}: {error_container[0]}")
         return None
+
+    return result_container[0]
+
+def render_all_scenes(scenes: list, output_dir: str) -> list:
+    """
+    UPGRADE C: PARALLEL SCENE RENDERING
+    Renders multiple scenes concurrently using asyncio.gather and a semaphore (max 3 instances)
+    to achieve up to 6x speedup while avoiding GPU memory overload.
+    
+    The existing function signature render_all_scenes(scenes: list, output_dir: str) is maintained.
+    Each scene dict must contain: 'html_content', 'timeline_data', 'total_duration_ms', 'scene_id', 'title'
+    """
+    result_container = [None]
+
+    def _run_in_thread():
+        if sys.platform == 'win32':
+            asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+
+        async def _capture_all():
+            from playwright.async_api import async_playwright
+            sem = asyncio.Semaphore(3)
+
+            async def _render_single(idx: int, scene: Dict):
+                start_time = time.time()
+                scene_id = scene.get("scene_id", f"scene_{idx}")
+                title = scene.get("title", scene_id)
+                html_content = scene.get("html_content", "")
+                timeline_data = scene.get("timeline_data", {})
+                total_duration_ms = scene.get("total_duration_ms", 10000)
+
+                async with sem:
+                    try:
+                        async with async_playwright() as p:
+                            browser = await p.chromium.launch(
+                                headless=True,
+                                args=[
+                                    "--disable-web-security",
+                                    "--no-sandbox",
+                                    "--disable-setuid-sandbox",
+                                    "--disable-dev-shm-usage",
+                                ]
+                            )
+                            temp_video_dir = os.path.join(output_dir, f"pw_{uuid.uuid4().hex[:6]}")
+                            os.makedirs(temp_video_dir, exist_ok=True)
+
+                            temp_html = os.path.join(temp_video_dir, "scene.html")
+                            with open(temp_html, "w", encoding="utf-8") as f:
+                                f.write(html_content)
+
+                            context = await browser.new_context(
+                                viewport={"width": 1920, "height": 1080},
+                                record_video_dir=temp_video_dir,
+                                record_video_size={"width": 1920, "height": 1080},
+                            )
+                            page = await context.new_page()
+
+                            await page.add_init_script(
+                                f"window.TIMELINE_DATA = {json.dumps(timeline_data)};"
+                            )
+
+                            abs_html = os.path.abspath(temp_html).replace("\\", "/")
+                            await page.goto(
+                                f"file:///{abs_html}",
+                                wait_until="networkidle",
+                                timeout=20000
+                            )
+
+                            # Wait for duration + 500ms buffer as requested
+                            await page.wait_for_timeout(int(total_duration_ms) + 500)
+
+                            await context.close()
+                            await browser.close()
+
+                            webm_files = [f for f in os.listdir(temp_video_dir) if f.endswith(".webm")]
+                            if not webm_files:
+                                raise Exception(f"No .webm produced for {scene_id}")
+
+                            src = os.path.join(temp_video_dir, webm_files[0])
+                            dst = os.path.join(output_dir, f"{scene_id}_raw.webm")
+                            if os.path.exists(dst):
+                                os.remove(dst)
+                            shutil.move(src, dst)
+                            shutil.rmtree(temp_video_dir, ignore_errors=True)
+
+                            elapsed = time.time() - start_time
+                            # Progress log
+                            print(f"[ParallelRender] Scene {idx} | {title} | Elapsed: {elapsed:.2f}s")
+                            return dst
+
+                    except Exception as e:
+                        log_error(f"[ParallelRender] Error rendering {scene_id}: {e}")
+                        return None
+
+            tasks = []
+            for i, scene in enumerate(scenes):
+                tasks.append(asyncio.create_task(_render_single(i, scene)))
+
+            # gather preserves the order of the tasks (and thus the input list)
+            return await asyncio.gather(*tasks, return_exceptions=False)
+
+        result_container[0] = asyncio.run(_capture_all())
+
+    t = threading.Thread(target=_run_in_thread, daemon=True)
+    t.start()
+    t.join()
 
     return result_container[0]

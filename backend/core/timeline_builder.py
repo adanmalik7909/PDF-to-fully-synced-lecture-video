@@ -5,6 +5,8 @@ The brain of the sync system. Takes TTS word timestamps + Blueprint scene
 and produces a Master Timeline JSON where every visual event has an exact start_ms.
 """
 import re
+import os
+import json
 from typing import List, Dict, Optional
 
 
@@ -48,9 +50,32 @@ class TimelineBuilder:
         events += self._component_highlight_events()
         events += self._diagram_teaching_sequence()
         events += self._shot_plan_events()
+        events += self._formula_steps()
+        events += self._table_focus_events()
+        
+        # UPGRADE A: Cursor Grounding System
+        if self.scene.get("diagram_data"):
+            cursor_events = self.generate_cursor_events(self.scene.get("diagram_data", {}), self.words)
+            events += cursor_events
+
+        # NOTE: AnimationBrain is invoked in blueprint_pipeline._build_scene()
+        # after build(). Do NOT call it here to avoid duplicate animation events.
 
         # V13: Cognitive Load Optimization (resolve conflicts, add breathe moments)
         events = self._optimize_cognitive_load(events)
+
+        # ── Animation Brain: Intelligent diagram events ─────────────
+        if self.scene.get("diagram_refs") and len(self.scene["diagram_refs"]) > 0:
+            from core.animation_brain import generate_animation_script
+            primary_diagram_path = self.scene["diagram_refs"][0]
+            if os.path.exists(primary_diagram_path):
+                brain_events = generate_animation_script(
+                    scene=self.scene,
+                    word_timestamps=self.words,
+                    diagram_image_path=primary_diagram_path
+                )
+                events.extend(brain_events)
+        # ─────────────────────────────────────────────────────────────
 
         # Sort by start_ms
         events.sort(key=lambda e: e["start_ms"])
@@ -159,6 +184,80 @@ class TimelineBuilder:
             subtitle_idx += 1
 
         return events
+
+    # ──────────────────────────────────────────────────────────────────────
+    # UPGRADE A: CURSOR GROUNDING SYSTEM
+    # ──────────────────────────────────────────────────────────────────────
+    def generate_cursor_events(self, diagram_data: Dict, word_timestamps: List[Dict]) -> List[Dict]:
+        """
+        Uses Groq (LLaMA 3.3 70B) to align diagram elements with spoken words
+        and generate cursor_move events. Falls back to empty list on failure.
+        """
+        cursor_events = []
+        if not diagram_data or not word_timestamps:
+            return cursor_events
+
+        try:
+            from groq import Groq
+            api_key = os.environ.get("GROQ_API_KEY", "")
+            if not api_key:
+                print("[CursorGrounding] No GROQ_API_KEY set — skipping cursor events")
+                return cursor_events
+
+            client = Groq(api_key=api_key)
+
+            # Trim word timestamps to avoid token overflow (send first 200 words max)
+            trimmed_words = word_timestamps[:200]
+
+            system_prompt = """You are a spatial-temporal grounding agent for educational videos.
+Given spoken word timestamps and diagram element bounding boxes, generate cursor movement events.
+Return ONLY a JSON array. Each object must have: event_type, timestamp_ms, element_id, target_x, target_y, label.
+The target_x and target_y must be the center of the element's bounding box as normalized floats between 0.0 and 1.0 (e.g. if bbox is x:0.1, y:0.2, w:0.4, h:0.4, center is target_x:0.3, target_y:0.4).
+If no elements match, return []. No explanation, no markdown."""
+
+            user_prompt = f"""Words Timeline (first {len(trimmed_words)} words):
+{json.dumps(trimmed_words, indent=2)}
+
+Diagram Elements:
+{json.dumps(diagram_data, indent=2)}"""
+
+            resp = client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt},
+                ],
+                max_tokens=2048,
+                temperature=0.3,
+            )
+            text = resp.choices[0].message.content.strip()
+
+            # Extract JSON block
+            if "```json" in text:
+                text = text.split("```json")[1].split("```")[0]
+            elif "```" in text:
+                text = text.split("```")[1].split("```")[0]
+
+            generated_events = json.loads(text.strip())
+
+            for ev in generated_events:
+                cursor_events.append({
+                    "start_ms": ev.get("timestamp_ms", 0),
+                    "end_ms": ev.get("timestamp_ms", 0) + 600,
+                    "event_type": "cursor_move",
+                    "details": {
+                        "target_x": ev.get("target_x"),
+                        "target_y": ev.get("target_y"),
+                        "label": ev.get("label", ""),
+                        "element_id": ev.get("element_id", "")
+                    }
+                })
+        except Exception as e:
+            # Graceful fallback — no cursor events if Groq fails
+            print(f"[CursorGrounding] Groq call failed, skipping: {e}")
+            
+        return cursor_events
+
 
     def _zoom_words(self) -> List[Dict]:
         events = []
@@ -672,60 +771,313 @@ class TimelineBuilder:
         return events
 
     # ──────────────────────────────────────────────────────────────────────
-    # V13 — Cognitive Load Optimizer
+    # V14 — Formula Step Events
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _formula_steps(self) -> List[Dict]:
+        """Generate formula_step events from scene's equation_data.
+        Each step reveals a portion of the LaTeX formula, timed by
+        trigger_word → _find_word_ms(). Falls back to proportional timing."""
+        events = []
+        equation_data = self.scene.get("equation_data", {})
+        if not equation_data:
+            return events
+
+        latex_full = equation_data.get("latex", "")
+        steps = equation_data.get("steps", [])
+        variables = equation_data.get("variables", [])
+
+        if steps:
+            for i, step in enumerate(steps):
+                trigger_word = step.get("trigger_word", "")
+                trigger_ms = self._find_word_ms(trigger_word) if trigger_word else None
+                if trigger_ms is None:
+                    fraction = (i + 1) / (len(steps) + 1)
+                    trigger_ms = self.total_ms * fraction
+
+                step_start = max(0, trigger_ms - 50)
+                events.append(self._ev(
+                    step_start, step_start + 2000, "formula_step", {
+                        "step_index": i,
+                        "latex": step.get("latex", ""),
+                        "label": step.get("label", f"Step {i+1}"),
+                        "full_latex": latex_full,
+                        "total_steps": len(steps),
+                    }
+                ))
+        else:
+            # Auto-generate 3 proportional reveal steps
+            for i in range(3):
+                fraction = (i + 1) / 4
+                step_ms = self.total_ms * fraction
+                events.append(self._ev(
+                    step_ms, step_ms + 2000, "formula_step", {
+                        "step_index": i,
+                        "latex": latex_full,
+                        "label": f"Part {i+1}",
+                        "full_latex": latex_full,
+                        "total_steps": 3,
+                    }
+                ))
+
+        # Variable annotations
+        for i, var in enumerate(variables):
+            symbol = var.get("symbol", "")
+            meaning = var.get("meaning", "")
+            var_ms = self._find_word_ms(symbol) if symbol else None
+            if var_ms is None:
+                var_ms = self.total_ms * 0.7 + (i * 800)
+            events.append(self._ev(
+                var_ms, var_ms + 1500, "formula_variable_annotate", {
+                    "symbol": symbol,
+                    "meaning": meaning,
+                    "var_index": i,
+                }
+            ))
+
+        return events
+
+    # ──────────────────────────────────────────────────────────────────────
+    # V14 — Table Focus Events
+    # ──────────────────────────────────────────────────────────────────────
+
+    def _table_focus_events(self) -> List[Dict]:
+        """Generate table_focus events from scene's table_data.
+        Each focus event highlights a row or column, timed by
+        trigger_word → _find_word_ms(). Falls back to proportional timing."""
+        events = []
+        table_data = self.scene.get("table_data", {})
+        if not table_data:
+            return events
+
+        headers = table_data.get("headers", [])
+        rows = table_data.get("rows", [])
+        focus_sequence = table_data.get("focus_sequence", [])
+
+        if focus_sequence:
+            for i, focus in enumerate(focus_sequence):
+                trigger_word = focus.get("trigger_word", "")
+                trigger_ms = self._find_word_ms(trigger_word) if trigger_word else None
+                if trigger_ms is None:
+                    fraction = (i + 1) / (len(focus_sequence) + 1)
+                    trigger_ms = self.total_ms * fraction
+
+                focus_start = max(0, trigger_ms - 50)
+                focus_type = focus.get("type", "row")
+                focus_index = focus.get("index", 0)
+
+                events.append(self._ev(
+                    focus_start, focus_start + 2000, "table_focus", {
+                        "focus_type": focus_type,
+                        "focus_index": focus_index,
+                        "headers": headers,
+                        "highlight_color": "#FFD700" if focus_type == "column" else "#4F8EF7",
+                        "label": headers[focus_index] if focus_type == "column" and focus_index < len(headers) else f"Row {focus_index + 1}",
+                    }
+                ))
+        else:
+            # Auto-generate: headers first, then rows
+            if headers:
+                header_ms = self.total_ms * 0.15
+                events.append(self._ev(
+                    header_ms, header_ms + 2000, "table_focus", {
+                        "focus_type": "header",
+                        "focus_index": -1,
+                        "headers": headers,
+                        "highlight_color": "#FFD700",
+                        "label": "Table Headers",
+                    }
+                ))
+
+            max_rows = min(len(rows), 4)
+            for i in range(max_rows):
+                fraction = 0.25 + (i * 0.15)
+                row_ms = self.total_ms * fraction
+                events.append(self._ev(
+                    row_ms, row_ms + 2000, "table_focus", {
+                        "focus_type": "row",
+                        "focus_index": i,
+                        "headers": headers,
+                        "highlight_color": "#4F8EF7",
+                        "label": f"Row {i + 1}",
+                    }
+                ))
+
+        return events
+
+    # ──────────────────────────────────────────────────────────────────────
+    # V13 — Cognitive Load Optimizer (DNA-Aware, Mayer's 5 Rules)
     # ──────────────────────────────────────────────────────────────────────
 
     _MAJOR_EVENTS = {
-        "bullet_enter", "bullet_active", "diagram_pan_zoom",
-        "teacher_write", "teacher_circle", "teacher_underline",
-        "attention_hook", "diagram_component_highlight",
-        "layout_shift",
+        "bullet_enter", "bullet_active", "bullet_word_reveal", "diagram_pan_zoom",
+        "teacher_write", "teacher_circle", "teacher_underline", "teacher_laser",
+        "attention_hook", "diagram_component_highlight", "layout_shift",
+        "formula_step", "table_focus", "difference_cell_flash", "term_underline_draw",
+        "term_zoom", "bridge_arrow_draw", "analogy_panel_glow", "concept_panel_reveal"
     }
 
     def _optimize_cognitive_load(self, events: List[Dict]) -> List[Dict]:
         """
-        Post-process events to enforce cognitive load rules:
-        1. No two major animations within 400ms of each other
-        2. 800ms breathe moment after each bullet_active
-        3. Auto-insert subtitle_dim during zoom_word_glow
+        Post-process timeline events to enforce Mayer's Multimedia Principles
+        and 3Blue1Brown pedagogical parameters:
+        
+        Rule 1 — Segmentation: Max 2 animation events in any 800ms window. Push overlapping.
+        Rule 2 — Signaling: 300ms pause (no animations) preceding any bullet_enter or diagram_zoom_in/diagram_pan_zoom.
+        Rule 3 — Coherence: Remove animations that are not linked to trigger spoken words (missing word timestamp matches).
+        Rule 4 — Temporal Contiguity: Animation and script words must be within 400ms. Shift to exactly 200ms before.
+        Rule 5 — Breathing Room: Mandatory 600ms empty window after any diagram_zoom_out.
         """
         if not events:
             return events
 
-        # Sort first to process in order
-        events.sort(key=lambda e: e["start_ms"])
+        # Helper to check if event type is major animation
+        def is_major(e):
+            return e.get("event_type") in self._MAJOR_EVENTS
 
-        # Rule 1: Deconflict major events (delay second one by 400ms)
-        major_events = [e for e in events if e["event_type"] in self._MAJOR_EVENTS]
-        for i in range(1, len(major_events)):
-            prev = major_events[i - 1]
-            curr = major_events[i]
-            gap = curr["start_ms"] - prev["start_ms"]
-            if 0 < gap < 400:
-                delay = 400 - gap
-                curr["start_ms"] += delay
-                curr["end_ms"] += delay
-
-        # Rule 2: Breathe moments after bullet_active (push later events)
-        bullet_actives = [e for e in events if e["event_type"] == "bullet_active"]
-        for ba in bullet_actives:
-            ba_end = ba["start_ms"] + 800
-            for e in events:
-                if e is ba:
-                    continue
-                if e["event_type"] in self._MAJOR_EVENTS and ba["start_ms"] < e["start_ms"] < ba_end:
-                    shift = ba_end - e["start_ms"]
-                    e["start_ms"] += shift
-                    e["end_ms"] += shift
-
-        # Rule 3: Auto-insert subtitle_dim during zoom_word_glow
-        new_events = []
+        # --- RULE 3 & 4: Coherence and Temporal Contiguity ---
+        # Match each visual trigger event with narration timestamps and prune if unrelated
+        refined_events = []
         for e in events:
-            if e["event_type"] == "zoom_word_glow":
-                new_events.append(self._ev(
-                    e["start_ms"], e["end_ms"],
-                    "subtitle_dim", {"opacity": 0.3}
-                ))
-        events.extend(new_events)
+            etype = e.get("event_type")
+            
+            # Non-visual triggers (scene_start, subtitle, audio) remain unmodified
+            if etype in ("scene_start", "scene_end", "subtitle_show", "subtitle_word_hl", "ken_burns", "subtitle_dim"):
+                refined_events.append(e)
+                continue
 
-        return events
+            # CRITICAL: Animation Brain events have 'timestamp_ms' field and are
+            # ALREADY speech-synchronized by _get_narration_word_ms(). They must
+            # bypass Rule 3/4 — stripping them destroys all DNA-specific animations.
+            if "timestamp_ms" in e:
+                refined_events.append(e)
+                continue
+
+            # DNA structural events that are layout-driven (not speech-driven)
+            # must also pass through without coherence pruning
+            _DNA_PASSTHROUGH = {
+                "heading_glow", "gold_word_pulse", "cause_highlight", "effect_highlight",
+                "column_a_slide_in", "column_b_slide_in", "analogy_panel_glow",
+                "bridge_arrow_draw", "concept_panel_reveal", "background_transition",
+                "avatar_scale_to_center", "gold_text_fade_in", "avatar_return_to_corner",
+                "formula_render", "annotation_circle", "flow_arrow_draw", "arrow_draw",
+                "dramatic_pause", "diagram_overview", "heading_focus", "takeaway_show",
+                "analogy_overlay", "diagram_enter", "diagram_exit",
+            }
+            if etype in _DNA_PASSTHROUGH:
+                refined_events.append(e)
+                continue
+
+            # Check spoken synchronization link
+            trigger_word = e.get("data", {}).get("trigger_word") or e.get("trigger_word")
+            if not trigger_word and is_major(e):
+                # Check if it has a label, text or other metadata to resolve
+                lbl = e.get("data", {}).get("label") or e.get("data", {}).get("text")
+                if lbl:
+                    trigger_word = lbl.split()[0] if lbl.split() else ""
+            
+            if is_major(e):
+                if not trigger_word:
+                    # Rule 3: Coherence - remove visual event if not tied to any spoken topic/word
+                    continue
+                
+                # Find matching spoken timestamp
+                word_ms = self._find_word_ms(trigger_word)
+                if word_ms is None:
+                    # Rule 3: Coherence - remove visual event if trigger word is not spoken at all in narration
+                    continue
+                
+                # Rule 4: Temporal Contiguity - ensure sync within 400ms
+                time_diff = abs(e["start_ms"] - word_ms)
+                if time_diff > 400.0:
+                    # Align precisely 200ms before spoken word to allow visual transition before sound
+                    shift = word_ms - 200.0 - e["start_ms"]
+                    e["start_ms"] = max(0.0, e["start_ms"] + shift)
+                    e["end_ms"] = max(200.0, e["end_ms"] + shift)
+                    if "timestamp_ms" in e:
+                        e["timestamp_ms"] = e["start_ms"]
+
+            refined_events.append(e)
+
+        # Sort events by start_ms to process intervals chronologically
+        refined_events.sort(key=lambda e: e["start_ms"])
+
+        # --- RULE 2: Signaling (300ms quiet window preceding new bullet/zooms) ---
+        for i in range(len(refined_events)):
+            curr = refined_events[i]
+            if curr.get("event_type") in ("bullet_enter", "bullet_word_reveal", "diagram_pan_zoom", "diagram_zoom_in"):
+                target_start = curr["start_ms"]
+                # Look backwards for preceding animations in [target_start - 300, target_start]
+                for prev in refined_events[:i]:
+                    if is_major(prev) and (target_start - 300.0 <= prev["start_ms"] <= target_start):
+                        # Push current event forward to guarantee quiet window
+                        delay = (prev["start_ms"] + 300.0) - curr["start_ms"]
+                        curr["start_ms"] += delay
+                        curr["end_ms"] += delay
+                        if "timestamp_ms" in curr:
+                            curr["timestamp_ms"] = curr["start_ms"]
+
+        # Re-sort after pushing signaling quiet buffers
+        refined_events.sort(key=lambda e: e["start_ms"])
+
+        # --- RULE 5: Breathing Room (600ms empty window after diagram_zoom_out) ---
+        for i in range(len(refined_events)):
+            curr = refined_events[i]
+            if curr.get("event_type") in ("diagram_zoom_out", "diagram_zoom_out_smooth", "zoom_out"):
+                zoom_out_end = curr["start_ms"]
+                # Ensure no major animation fires within 600ms after this zoom out
+                for j in range(i + 1, len(refined_events)):
+                    nxt = refined_events[j]
+                    if is_major(nxt) and (zoom_out_end < nxt["start_ms"] < zoom_out_end + 600.0):
+                        delay = (zoom_out_end + 600.0) - nxt["start_ms"]
+                        nxt["start_ms"] += delay
+                        nxt["end_ms"] += delay
+                        if "timestamp_ms" in nxt:
+                            nxt["timestamp_ms"] = nxt["start_ms"]
+
+        # Re-sort after pushing breathing room delays
+        refined_events.sort(key=lambda e: e["start_ms"])
+
+        # --- RULE 1: Segmentation (Max 2 major animation events within any 800ms window) ---
+        i = 0
+        while i < len(refined_events):
+            major_in_window = []
+            win_start = refined_events[i]["start_ms"]
+            
+            # Find all major animations within [win_start, win_start + 800]
+            for j in range(i, len(refined_events)):
+                nxt = refined_events[j]
+                if nxt["start_ms"] > win_start + 800.0:
+                    break
+                if is_major(nxt):
+                    major_in_window.append(nxt)
+
+            # If more than 2 animations are crowded in this 800ms window, segment them
+            if len(major_in_window) > 2:
+                # Keep the first two, and delay all subsequent ones beyond the window
+                for idx in range(2, len(major_in_window)):
+                    crowded_ev = major_in_window[idx]
+                    delay = (win_start + 800.0) - crowded_ev["start_ms"]
+                    crowded_ev["start_ms"] += delay
+                    crowded_ev["end_ms"] += delay
+                    if "timestamp_ms" in crowded_ev:
+                        crowded_ev["timestamp_ms"] = crowded_ev["start_ms"]
+                
+                # Re-sort and repeat check at same index to ensure safety
+                refined_events.sort(key=lambda e: e["start_ms"])
+                continue
+            i += 1
+
+        # --- Auto-insert subtitle_dim during zoom glows or zooms for high focus ---
+        dim_events = []
+        for e in refined_events:
+            if e["event_type"] in ("zoom_word_glow", "diagram_pan_zoom", "term_zoom"):
+                dim_events.append(self._ev(
+                    e["start_ms"], e["end_ms"],
+                    "subtitle_dim", {"opacity": 0.3, "trigger_word": "dim"}
+                ))
+        refined_events.extend(dim_events)
+        refined_events.sort(key=lambda e: e["start_ms"])
+
+        return refined_events
+

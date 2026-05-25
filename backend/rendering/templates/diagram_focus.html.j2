@@ -222,7 +222,10 @@
     {% include '_gsap_head.html.j2' %}
 </head>
 <body>
-<script>window.TIMELINE_DATA = {{ timeline_data | tojson }};</script>
+<script>
+window.TIMELINE_DATA = {{ timeline_data | tojson }};
+window.DIAGRAM_DATA = {{ scene.diagram_data | default({}) | tojson }};
+</script>
 
 <div id="analogy-overlay"></div>
 <div id="attention-hook-box"></div>
@@ -278,7 +281,7 @@
     {% endif %}
 </div>
 
-{% if scene.avatar_path %}
+{% if scene.avatar_path and not (scene.avatar_config and scene.avatar_config.hidden_for_ffmpeg) %}
 <div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
 <img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
 {% endif %}

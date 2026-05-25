@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-SmartStudyInstructor V10 — Scene Router
-Routes Blueprint scenes to the correct Jinja2 template and renders HTML
-with the V10 Timeline Data already embedded as window.TIMELINE_DATA.
+SmartStudyInstructor V10 — Scene Router (DNA-Aware)
+Routes Blueprint scenes to dedicated Jinja2 templates based on DNA types.
+Embeds window.TIMELINE_DATA and window.DIAGRAM_DATA for GSAP/Fabric timelines.
 """
 import os
 import json
@@ -12,58 +12,104 @@ from app.utils.logger import log_info, log_error
 
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), "templates")
 
-TEMPLATE_MAP = {
-    "intro":         "intro.html.j2",
-    "concept":       "concept.html.j2",
-    "diagram_focus": "concept.html.j2",
-    "comparison":    "concept.html.j2",   # reuse concept layout
-    "process":       "process.html.j2",   # V12: dedicated step-by-step template
-    "summary":       "summary.html.j2",
+# Map of the 8 Scene DNA archetypes to Jinja2 template files
+DNA_TEMPLATE_MAP = {
+    "DNA-1 CONCEPT_DEFINITION": "concept_definition_scene.html.j2",
+    "DNA-2 PROCESS_FLOW": "process_flow_scene.html.j2",
+    "DNA-3 CAUSE_EFFECT": "cause_effect_scene.html.j2",
+    "DNA-4 COMPARISON": "comparison_scene.html.j2",
+    "DNA-5 DIAGRAM_SPATIAL": "diagram_spatial_scene.html.j2",
+    "DNA-6 WORKED_EXAMPLE": "worked_example_scene.html.j2",
+    "DNA-7 ANALOGY_BRIDGE": "analogy_bridge_scene.html.j2",
+    "DNA-8 TAKEAWAY_SUMMARY": "takeaway_summary_scene.html.j2"
 }
 
+# Avatar configuration parameters per layout
 AVATAR_CONFIGS = {
-    "intro":         {"size": 280, "ring": "#C9B99A", "visible": True},
-    "concept":       {"size": 200, "ring": "#4F8EF7", "visible": True},
-    "diagram_focus": {"size": 120, "ring": "#1D9E75", "visible": True},
-    "comparison":    {"size": 200, "ring": "#4F8EF7", "visible": True},
-    "process":       {"size": 200, "ring": "#4F8EF7", "visible": True},
-    "summary":       {"size": 260, "ring": "#C9B99A", "visible": True},
+    "concept_definition": {"size": 180, "ring": "#C9B99A", "visible": True},
+    "process_flow": {"size": 120, "ring": "#4F8EF7", "visible": True},
+    "cause_effect": {"size": 140, "ring": "#FF3B3B", "visible": True},
+    "comparison": {"size": 140, "ring": "#FFD700", "visible": True},
+    "diagram_spatial": {"size": 120, "ring": "#00E5FF", "visible": True},
+    "worked_example": {"size": 130, "ring": "#FFD700", "visible": True},
+    "analogy_bridge": {"size": 150, "ring": "#C9B99A", "visible": True},
+    "takeaway_summary": {"size": 320, "ring": "#0C1223", "visible": True}
 }
-
 
 class SceneRouter:
-    """Routes Blueprint scenes to specific Jinja2 HTML templates."""
+    """Routes DNA-grounded blueprint scenes to dedicated templates."""
 
     def __init__(self, template_dir: str = None):
         tdir = template_dir or TEMPLATE_DIR
         self.jinja_env = jinja2.Environment(
             loader=jinja2.FileSystemLoader(tdir),
-            autoescape=False  # we handle safety ourselves
+            autoescape=False
         )
+        
+        # Word wrap filter for sequential karaoke dim reveals
         import re
         def wordwrap_spans(text):
             if not text:
                 return ""
-            # Split by whitespace but keep spaces
-            words = text.split()
-            out = []
-            for w in words:
-                out.append(f'<span class="word-span">{w}</span>')
-            return " ".join(out)
+            parts = re.split(r'(<[^>]+>)', text)
+            result = []
+            for part in parts:
+                if part.startswith('<') and part.endswith('>'):
+                    result.append(part)
+                else:
+                    words_and_spaces = re.split(r'(\s+)', part)
+                    wrapped_part = []
+                    for item in words_and_spaces:
+                        if not item:
+                            continue
+                        if item.isspace():
+                            wrapped_part.append(item)
+                        else:
+                            wrapped_part.append(f'<span class="word-span">{item}</span>')
+                    result.append("".join(wrapped_part))
+            return "".join(result)
             
         self.jinja_env.filters["wordwrap_spans"] = wordwrap_spans
 
-    def render_scene_html(self, scene: Dict, timeline_data: Dict = None) -> str:
-        """
-        Renders the final HTML string for the given scene.
-        If timeline_data is provided it is embedded as window.TIMELINE_DATA.
-        """
-        scene_type    = scene.get("scene_type", "concept")
-        template_name = TEMPLATE_MAP.get(scene_type, "concept.html.j2")
-        # Allow pipeline to override avatar_config (e.g. to hide static avatar)
-        avatar_config = scene.get("avatar_config") or AVATAR_CONFIGS.get(scene_type, AVATAR_CONFIGS["concept"])
+    def select_dna_template(self, scene: Dict) -> str:
+        """Determines the correct Jinja2 template based on the Scene DNA type."""
+        dna_dict = scene.get("scene_dna") or {}
+        dna_type = dna_dict.get("dna_type", "")
+        
+        template = DNA_TEMPLATE_MAP.get(dna_type)
+        if not template:
+            # Fallback legacy layout mapping
+            legacy_type = scene.get("scene_type", "concept")
+            if legacy_type == "formula":
+                template = "worked_example_scene.html.j2"
+            elif legacy_type == "table":
+                template = "comparison_scene.html.j2"
+            elif legacy_type == "process":
+                template = "process_flow_scene.html.j2"
+            elif legacy_type == "summary":
+                template = "takeaway_summary_scene.html.j2"
+            else:
+                template = "concept_definition_scene.html.j2"
 
-        # Build safe timeline_data for Jinja2 serialisation
+        # Verify template exists on disk
+        target_path = os.path.join(self.jinja_env.loader.searchpath[0], template)
+        if not os.path.exists(target_path):
+            log_error(f"[SceneRouter] Target template not found on disk: {target_path}. Using fallback.")
+            return "concept_definition_scene.html.j2"
+
+        return template
+
+    def render_scene_html(self, scene: Dict, timeline_data: Dict = None) -> str:
+        """Renders the Jinja2 HTML layout with TIMELINE_DATA variables injected."""
+        template_name = self.select_dna_template(scene)
+        
+        dna_dict = scene.get("scene_dna") or {}
+        preset = dna_dict.get("layout_preset", "concept_definition")
+        # Merge: DNA-specific defaults (size, ring) + pipeline runtime flags (hidden_for_ffmpeg, is_lipsync)
+        dna_defaults = AVATAR_CONFIGS.get(preset, AVATAR_CONFIGS["concept_definition"]).copy()
+        pipeline_overrides = scene.get("avatar_config") or {}
+        avatar_config = {**dna_defaults, **pipeline_overrides}
+
         tdata = timeline_data or {
             "scene_id": scene.get("scene_id"),
             "total_duration_ms": scene.get("duration_sec", 10) * 1000,
@@ -79,5 +125,5 @@ class SceneRouter:
             )
             return html
         except Exception as e:
-            log_error(f"[SceneRouter] Template render failed ({template_name}): {e}")
+            log_error(f"[SceneRouter] Render failed ({template_name}): {e}")
             return ""

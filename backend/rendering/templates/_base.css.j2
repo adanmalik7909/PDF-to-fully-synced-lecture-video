@@ -51,7 +51,7 @@ body.scene-ready { opacity: 1; }
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 70px 65px 70px 80px;
+    padding: 40px 65px 180px 80px; /* Push content up to avoid avatar overlap */
     z-index: 10;
     background-image:
         linear-gradient(135deg, rgba(74,143,224,0.04) 0%, transparent 60%),
@@ -122,6 +122,7 @@ body.scene-ready { opacity: 1; }
     font-weight: 700;
     line-height: 1.16;
     color: var(--white);
+    text-shadow: 0 2px 8px rgba(0,0,0,0.6);
     margin-bottom: 24px;
     transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
                 color 0.4s ease,
@@ -143,9 +144,8 @@ body.scene-ready { opacity: 1; }
 
 /* State: when heading gets focused */
 .slide-heading.heading-active {
-    transform: scale(1.04) translateX(4px);
     color: var(--gold-light);
-    text-shadow: 0 0 40px rgba(212, 168, 83, 0.4);
+    text-shadow: 0 0 40px rgba(212, 168, 83, 0.45);
 }
 .slide-heading.heading-active::after {
     width: 80px;
@@ -221,7 +221,8 @@ body.scene-ready { opacity: 1; }
     font-family: 'Playfair Display', serif;
     font-size: 40px;
     font-weight: 700;
-    color: var(--dark-text);
+    color: #1C2B3A;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.08);
     line-height: 1.22;
     margin-bottom: 8px;
     margin-top: 0;
@@ -305,10 +306,18 @@ body.scene-ready { opacity: 1; }
 .bullet-text {
     font-size: 21px;
     line-height: 1.55;
-    color: #516172;
+    color: #3A4D5E;
     font-weight: 400;
     transition: color 0.3s ease, font-weight 0.3s ease;
     padding-top: 10px;
+}
+
+.word-span {
+    display: inline-block;
+    white-space: normal;
+    color: inherit;
+    font-weight: inherit;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
 }
 
 /* Zoom word inline highlight */
@@ -358,7 +367,7 @@ body.scene-ready { opacity: 1; }
 }
 @keyframes diagKenBurns {
     from { transform: translateY(-52%) translateX(0) scale(1.0); }
-    to   { transform: translateY(-52%) translateX(0) scale(1.06) translate(-6px, 4px); }
+    to   { transform: translateY(-52%) translateX(0) scale(1.03) translate(-3px, 2px); }
 }
 
 /* Diagram header strip */
@@ -760,7 +769,6 @@ body.scene-ready { opacity: 1; }
    V12 — HEADING ZOOM ACTIVE STATE
 ═══════════════════════════════════ */
 .heading-zoom-active {
-  transform: scale(1.12) !important;
   color: #C9B99A !important;
   text-shadow: 0 0 24px rgba(201,184,154,0.5) !important;
 }

@@ -1,0 +1,187 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<style>
+    :root {
+        --col-left: 30%;
+        --col-right: 70%;
+    }
+    
+    .spatial-grid {
+        display: grid;
+        grid-template-columns: var(--col-left) var(--col-right);
+        width: 100%;
+        height: 100%;
+        position: relative;
+    }
+    
+    /* Override base .left-panel absolute positioning to work with CSS grid */
+    .spatial-grid .left-panel {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        left: auto;
+        top: auto;
+    }
+    
+    .spatial-visual {
+        background: rgba(12, 18, 35, 0.95);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        border-left: 1px solid rgba(79,142,247,0.3);
+    }
+    
+    #diagram-viewport {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transform-origin: center center;
+        will-change: transform;
+    }
+    
+    #diagram-img {
+        max-width: 92%;
+        max-height: 92%;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    
+    #diagram-canvas-overlay,
+    #diagram-svg-overlay {
+        position: absolute;
+        top: 0; left: 0;
+        pointer-events: none;
+        z-index: 15;
+    }
+    
+    .bullets-zone {
+        margin-top: 35px;
+    }
+    
+    .bullet {
+        opacity: 0;
+        margin-bottom: 24px;
+        transition: opacity 0.4s ease;
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="spatial-grid">
+    
+    <!-- LEFT PANEL: guided descriptions -->
+    <div class="left-panel">
+        <div class="topic-chip">{{ scene.topic }}</div>
+        
+        <h1 class="slide-heading playfair" style="font-size: 38px;">
+            {{ scene.heading_left }}
+        </h1>
+        
+        <p class="slide-description inter" style="font-size: 16px; color: rgba(255,255,255,0.5);">
+            Guided Tour: walking through structural components:
+        </p>
+        
+        <div class="bullets-zone">
+            {% for bullet in scene.bullets %}
+            <div class="bullet" id="bullet_{{ loop.index0 }}" data-index="{{ loop.index0 }}" style="display: flex; gap: 14px; align-items: flex-start;">
+                <div class="bullet-num" style="background: var(--gold); color: var(--navy); font-weight: 700; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0;">
+                    {{ bullet.num }}
+                </div>
+                <div class="bullet-text inter" style="font-size: 17px; line-height: 1.5; color: rgba(255,255,255,0.85); padding-top: 2px;">
+                    {{ bullet.text | wordwrap_spans | safe }}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="scene-counter">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    <!-- RIGHT PANEL: complex diagram walkthrough stage -->
+    <div class="spatial-visual" id="diag-stage">
+        <div class="progress-strip">
+            <div class="progress-fill" style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+        </div>
+        
+        {% if scene.diagram_paths %}
+        <div id="diagram-viewport">
+            <img id="diagram-img" src="{{ scene.diagram_paths[0] }}" alt="Guided Lecture Diagram" onload="_initDiagramOverlays(this)">
+            
+            <canvas id="diagram-canvas-overlay"></canvas>
+            <svg id="diagram-svg-overlay">
+                <defs>
+                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                        <polygon points="0 0, 10 3.5, 0 7" fill="#00E5FF"/>
+                    </marker>
+                    <filter id="glow">
+                        <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                        <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                    </filter>
+                </defs>
+            </svg>
+            
+            <div id="spatial-pointer" style="position: absolute; width: 24px; height: 24px; display: none; z-index: 30; transform: translate(-50%, -50%); pointer-events: none;">
+                <div class="ptr-ring" style="position: absolute; inset: 0; border-radius: 50%; border: 3px solid #00E5FF; animation: ptr-pulse 1s ease-in-out infinite;"></div>
+                <div class="ptr-dot" style="position: absolute; width: 8px; height: 8px; border-radius: 50%; background: #FFD700; top: 50%; left: 50%; transform: translate(-50%, -50%); box-shadow: 0 0 10px #FFD700;"></div>
+                <div class="ptr-label" style="position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(12,18,35,0.95); color: #00E5FF; padding: 4px 10px; border-radius: 4px; font-size: 13px; font-weight: 600; white-space: nowrap; border: 1px solid rgba(0,229,255,0.4);"></div>
+            </div>
+        </div>
+        {% else %}
+        <div style="color: rgba(255,255,255,0.3); font-size: 24px;">
+            Full interactive spatial visual diagram.
+        </div>
+        {% endif %}
+        
+        <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: var(--navy); color: var(--white); padding: 16px 40px; display: flex; gap: 16px; align-items: center; border-top: 2px solid var(--gold); z-index: 25;">
+            <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 13px; text-transform: uppercase;">Key Takeaway</span>
+            <span class="takeaway-text inter" style="font-size: 15px;">{{ scene.takeaway }}</span>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let fabricCanvas = null;
+
+function _initDiagramOverlays(img) {
+    const canvasEl = document.getElementById('diagram-canvas-overlay');
+    const svg = document.getElementById('diagram-svg-overlay');
+    if (!canvasEl || !svg) return;
+
+    const width = img.naturalWidth || img.offsetWidth || 800;
+    const height = img.naturalHeight || img.offsetHeight || 600;
+
+    canvasEl.width = width;
+    canvasEl.height = height;
+    canvasEl.style.width = img.offsetWidth + 'px';
+    canvasEl.style.height = img.offsetHeight + 'px';
+    canvasEl.style.left = img.offsetLeft + 'px';
+    canvasEl.style.top = img.offsetTop + 'px';
+
+    svg.setAttribute('viewBox', `0 0 ${img.offsetWidth} ${img.offsetHeight}`);
+    svg.style.width = img.offsetWidth + 'px';
+    svg.style.height = img.offsetHeight + 'px';
+    svg.style.left = img.offsetLeft + 'px';
+    svg.style.top = img.offsetTop + 'px';
+
+    if (window.fabric) {
+        window.fabricCanvas = new fabric.StaticCanvas('diagram-canvas-overlay', {
+            width: width,
+            height: height
+        });
+        fabricCanvas = window.fabricCanvas;
+    }
+}
+</script>
+{% endblock %}

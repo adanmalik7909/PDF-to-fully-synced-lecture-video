@@ -1,0 +1,124 @@
+{% extends '_base.html.j2' %}
+
+{% block head %}
+<style>
+    .comparison-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        height: 100%;
+        position: relative;
+        background: var(--navy);
+        padding: 50px 80px;
+    }
+    
+    .comparison-table-wrapper {
+        background: var(--cream);
+        border-radius: 20px;
+        box-shadow: var(--shadow-lg);
+        overflow: hidden;
+        margin-top: 40px;
+        border: 2px solid var(--gold);
+        max-width: 100%;
+    }
+    
+    .comp-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    
+    .table-header-cell {
+        background: var(--navy);
+        color: var(--white);
+        font-family: 'Playfair Display', serif;
+        font-size: 22px;
+        font-weight: 700;
+        padding: 20px 24px;
+        border-bottom: 2px solid var(--gold);
+    }
+    
+    .table-row {
+        border-bottom: 1px solid var(--cream-dark);
+        transition: background 0.3s ease, opacity 0.3s ease;
+    }
+    
+    .table-cell {
+        padding: 18px 24px;
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--dark-text);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.5;
+        transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .column-a {
+        opacity: 0;
+        transform: translateX(-40px);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .column-b {
+        opacity: 0;
+        transform: translateX(40px);
+        transition: all 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+    
+    .column-a.visible,
+    .column-b.visible {
+        opacity: 1;
+        transform: translateX(0);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="comparison-container">
+    
+    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+        <div>
+            <div class="topic-chip" style="margin-bottom: 12px;">{{ scene.topic }}</div>
+            <h1 class="slide-heading playfair" style="margin-bottom: 0;">{{ scene.heading_right or scene.heading_left }}</h1>
+        </div>
+        <div class="scene-counter" style="position: static; padding-top: 15px;">
+            Scene {{ "%02d"|format(scene.scene_index) }} / {{ "%02d"|format(scene.total_scenes) }}
+        </div>
+    </div>
+    
+    {% set tdata = scene.table_data %}
+    {% if tdata %}
+    <div class="comparison-table-wrapper">
+        <table class="comp-table">
+            <thead>
+                <tr>
+                    <th class="table-header-cell">{{ tdata.headers[0] if tdata.headers else 'Feature' }}</th>
+                    <th class="table-header-cell column-a" id="col-header-a">{{ tdata.headers[1] if (tdata.headers and tdata.headers|length > 1) else 'Concept A' }}</th>
+                    <th class="table-header-cell column-b" id="col-header-b">{{ tdata.headers[2] if (tdata.headers and tdata.headers|length > 2) else 'Concept B' }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in tdata.rows %}
+                <tr class="table-row" id="row_{{ loop.index0 }}" data-row="{{ loop.index0 }}">
+                    <td class="table-cell" style="font-weight: 700; color: var(--navy);">{{ row[0] }}</td>
+                    <td class="table-cell column-a table-cell-val" data-col="1" style="border-left: 1px solid var(--cream-dark);">{{ row[1] }}</td>
+                    <td class="table-cell column-b table-cell-val" data-col="2" style="border-left: 1px solid var(--cream-dark);">{{ row[2] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="color: rgba(255,255,255,0.4); font-size: 24px; display:flex; align-items:center; justify-content:center; height:100%">
+        Side-by-side analytical comparisons layout.
+    </div>
+    {% endif %}
+    
+    <!-- Takeaway bar -->
+    <div id="takeaway-bar" style="position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(90deg, var(--navy-light), var(--navy)); border-top: 1px solid rgba(79,142,247,0.3); padding: 16px 40px; display: flex; align-items: center; gap: 16px;">
+        <span class="takeaway-label inter" style="color: var(--gold); font-weight: 800; font-size: 13px;">Key Takeaway</span>
+        <span class="takeaway-text inter" style="color: var(--white); font-size: 16px;">{{ scene.takeaway }}</span>
+    </div>
+    
+</div>
+{% endblock %}

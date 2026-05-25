@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — {{ scene.topic }}</title>
+
+    <!-- KaTeX CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css"
+          integrity="sha384-nB0miv6/jRmo5OLARB2MU4mckDv0F3k+DqI+iH0dKIHLnAfIvXbBh2y8WdKNoEYK" crossorigin="anonymous">
+
+    <style>
+        {% include '_base.css.j2' %}
+
+        /* ═══════════════════════════════════════════════════════
+           FORMULA SCENE — Premium Cinematic Overrides
+        ═══════════════════════════════════════════════════════ */
+
+        /* Override layout columns for formula: 40% left, 60% right */
+        .left-panel  { width: 40%; }
+        .right-panel { left: 40%; width: 60%; }
+
+        /* ── Right panel: Dark blackboard stage ── */
+        .right-panel {
+            background: #0C1223;
+            color: #F5F3EE;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+
+        /* ── Formula Stage (blackboard area) ── */
+        .formula-stage {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 70px 40px;
+            overflow: hidden;
+        }
+
+        /* Ambient blackboard glow */
+        .formula-stage::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 70% 50% at 50% 40%, rgba(79,142,247,0.06) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 30% 60%, rgba(255,215,0,0.03) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* Subtle grid texture on blackboard */
+        .formula-stage::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.012) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.012) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none;
+        }
+
+        /* ── Formula Stage Heading ── */
+        .formula-stage-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: 28px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.85);
+            text-align: center;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .formula-heading-underline {
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #C9B99A, transparent);
+            margin: 0 auto 36px;
+            border-radius: 2px;
+        }
+
+        /* ── Main Formula Display ── */
+        .formula-main-wrap {
+            position: relative;
+            z-index: 2;
+            padding: 32px 48px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(201,185,154,0.15);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow:
+                0 4px 40px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.05);
+            margin-bottom: 36px;
+            text-align: center;
+            transition: box-shadow 0.6s ease;
+        }
+
+        .formula-main-wrap .katex {
+            font-size: 2.4em;
+            color: #FFD700;
+        }
+
+        .formula-main-wrap .katex .mord,
+        .formula-main-wrap .katex .mbin,
+        .formula-main-wrap .katex .mrel,
+        .formula-main-wrap .katex .mop {
+            color: #FFD700;
+        }
+
+        /* Gold ambient glow on main formula */
+        .formula-main-wrap::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, rgba(255,215,0,0.08), transparent 40%, rgba(79,142,247,0.06));
+            z-index: -1;
+            opacity: 0.6;
+        }
+
+        /* ── Formula Steps ── */
+        .formula-steps-zone {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            max-width: 820px;
+            margin-bottom: 28px;
+        }
+
+        .formula-step {
+            display: none; /* Revealed by timeline events */
+            padding: 16px 24px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(201,185,154,0.12);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+            transition: box-shadow 0.4s ease;
+        }
+
+        .formula-step-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .formula-step-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4F8EF7, #7FB3FF);
+            color: #fff;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .formula-step-label {
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            color: rgba(255,255,255,0.7);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .formula-step-content {
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .formula-step-content .katex {
+            font-size: 1.5em;
+            color: rgba(255,255,255,0.92);
+        }
+
+        /* ── Variable Definition Cards ── */
+        .formula-variables-zone {
+            position: relative;
+            z-index: 2;
+            width: 100%;
+            max-width: 820px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .var-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 20px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(79,142,247,0.2);
+            border-radius: 10px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .var-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255,215,0,0.4);
+        }
+
+        .var-symbol {
+            font-family: 'Playfair Display', serif;
+            font-size: 22px;
+            font-weight: 700;
+            color: #FFD700;
+            min-width: 32px;
+            text-align: center;
+            text-shadow: 0 0 12px rgba(255,215,0,0.3);
+        }
+
+        .var-symbol .katex {
+            font-size: 1.1em;
+            color: #FFD700;
+        }
+
+        .var-sep {
+            width: 1px;
+            height: 24px;
+            background: rgba(201,185,154,0.25);
+        }
+
+        .var-meaning {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 400;
+        }
+
+        /* ── Bullets on left panel for formula scenes ── */
+        .formula-bullets-zone {
+            margin-top: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .formula-bullets-zone .bullet {
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+
+        .formula-bullets-zone .bullet-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 18px;
+        }
+
+        .formula-bullets-zone .b-active .bullet-text {
+            color: rgba(255,255,255,0.95) !important;
+        }
+
+        .formula-bullets-zone .bullet-num {
+            background: rgba(79,142,247,0.15);
+            color: #4F8EF7;
+        }
+
+        .formula-bullets-zone .b-active .bullet-num {
+            background: #4F8EF7 !important;
+            color: #fff !important;
+        }
+
+        /* ── Left panel description ── */
+        .left-panel .slide-description {
+            max-width: 480px;
+        }
+
+        /* ── Progress strip override for dark right panel ── */
+        .formula-progress-strip {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: rgba(255,215,0,0.08);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .formula-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #C9B99A);
+            position: relative;
+        }
+
+        .formula-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0;
+            width: 40px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        /* ── Takeaway override for dark bg ── */
+        #takeaway-bar {
+            background: linear-gradient(135deg, rgba(26,37,53,0.95), rgba(12,18,35,0.95));
+            border-top: 2px solid rgba(255,215,0,0.2);
+        }
+
+        /* ── KaTeX render error fallback ── */
+        .katex-error {
+            color: rgba(255,255,255,0.5) !important;
+            font-size: 16px !important;
+        }
+    </style>
+
+    {% include '_gsap_head.html.j2' %}
+
+    <!-- KaTeX JS -->
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"
+            integrity="sha384-7zkQWkzuo3B5mTepMUcHkMB5jZaolc2xDwL6VFqjFALcbeS9Ggm/Yr2r3Dy4lfFg" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+            integrity="sha384-43gviWU0YVjaDtb/GhzOouOXtZMP/7XUzwPTstBeZFe/+rCMvRjXlF+0YKe9rJOs" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<!-- ── TIMELINE DATA ── -->
+<script>
+    window.TIMELINE_DATA = {{ timeline_data | tojson }};
+</script>
+
+<!-- ── Analogy background overlay ── -->
+<div id="analogy-overlay"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     LEFT PANEL — Navy
+════════════════════════════════════════════════════════ -->
+<div class="left-panel" id="kb-target">
+    <div class="topic-chip" id="topic-chip">{{ scene.topic }}</div>
+
+    <h1 class="slide-heading playfair" id="heading-left">
+        {% set heading = scene.heading_left %}
+        {% if scene.gold_word %}
+            {% set heading = heading | replace(scene.gold_word,
+                '<span class="gold-word">' ~ scene.gold_word ~ '</span>', 1) %}
+        {% endif %}
+        {{ heading | safe }}
+    </h1>
+
+    <p class="slide-description inter" id="left-desc">
+        {{ scene.left_description or '' }}
+    </p>
+
+    <!-- Bullets on left panel -->
+    {% if scene.bullets %}
+    <div class="formula-bullets-zone bullets-zone" id="bullets-zone">
+        {% for bullet in scene.bullets %}
+        {% if bullet is mapping %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ bullet.num or "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">
+                {% set btext = bullet.text or '' %}
+                {% if bullet.zoom_word %}
+                    {% set btext = btext | replace(bullet.zoom_word,
+                        '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">'
+                        ~ bullet.zoom_word ~ '</span>', 1) %}
+                {% endif %}
+                {{ btext | safe }}
+            </div>
+        </div>
+        {% else %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">{{ bullet }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="scene-counter">
+        Scene {{ "%02d"|format(scene.scene_index) }} /
+        {{ "%02d"|format(scene.total_scenes) }}
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     RIGHT PANEL — Dark Formula Stage
+════════════════════════════════════════════════════════ -->
+<div class="right-panel" id="right-panel">
+
+    <!-- Progress strip -->
+    <div class="formula-progress-strip">
+        <div class="formula-progress-fill"
+             style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+    </div>
+
+    <!-- Formula Stage -->
+    <div class="formula-stage" id="formula-stage">
+
+        <!-- Stage Heading -->
+        {% if scene.heading_right %}
+        <div class="formula-stage-heading" id="heading-right">{{ scene.heading_right }}</div>
+        <div class="formula-heading-underline"></div>
+        {% endif %}
+
+        <!-- Main Formula -->
+        {% if scene.equation_data and scene.equation_data.latex %}
+        <div class="formula-main-wrap" id="formula-main">
+            <span id="formula-main-katex">{{ scene.equation_data.latex }}</span>
+        </div>
+        {% endif %}
+
+        <!-- Formula Steps (hidden, revealed by timeline events) -->
+        {% if scene.equation_data and scene.equation_data.steps %}
+        <div class="formula-steps-zone" id="formula-steps-zone">
+            {% for step in scene.equation_data.steps %}
+            <div class="formula-step" id="formula-step-{{ loop.index0 }}" data-step="{{ loop.index0 }}">
+                <div class="formula-step-header">
+                    <div class="formula-step-badge">{{ loop.index }}</div>
+                    <div class="formula-step-label">{{ step.label or 'Step ' ~ loop.index }}</div>
+                </div>
+                <div class="formula-step-content">
+                    <span class="formula-step-katex">{{ step.latex }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Variable Definitions -->
+        {% if scene.equation_data and scene.equation_data.variables %}
+        <div class="formula-variables-zone" id="formula-variables">
+            {% for v in scene.equation_data.variables %}
+            <div class="var-card" id="var-card-{{ loop.index0 }}">
+                <div class="var-symbol"><span class="var-katex">{{ v.symbol }}</span></div>
+                <div class="var-sep"></div>
+                <div class="var-meaning">{{ v.meaning }}</div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+    </div><!-- /formula-stage -->
+
+    <!-- Takeaway bar -->
+    <div id="takeaway-bar">
+        <span class="takeaway-icon">💡</span>
+        <span class="takeaway-label inter">Key Takeaway</span>
+        <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     AVATAR
+════════════════════════════════════════════════════════ -->
+{% if scene.avatar_path and not (scene.avatar_config and scene.avatar_config.hidden_for_ffmpeg) %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+<!-- V12.5 Teacher Draw Layers -->
+{% include '_gsap_layers.html.j2' %}
+
+<!-- V12.5 GSAP Timeline Engine -->
+<script>
+    {% include '_timeline_engine.js.j2' %}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     FORMULA-SPECIFIC: KaTeX Rendering + Event Handlers
+═══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    /* ── Render all LaTeX on page load ── */
+    function renderKaTeX() {
+        // Main formula
+        var mainEl = document.getElementById('formula-main-katex');
+        if (mainEl && typeof katex !== 'undefined') {
+            try {
+                katex.render(mainEl.textContent.trim(), mainEl, {
+                    throwOnError: false,
+                    displayMode: true,
+                    output: 'html'
+                });
+            } catch(e) { console.warn('[KaTeX] Main formula error:', e); }
+        }
+
+        // Steps
+        document.querySelectorAll('.formula-step-katex').forEach(function(el) {
+            try {
+                katex.render(el.textContent.trim(), el, {
+                    throwOnError: false,
+                    displayMode: true,
+                    output: 'html'
+                });
+            } catch(e) { console.warn('[KaTeX] Step error:', e); }
+        });
+
+        // Variable symbols
+        document.querySelectorAll('.var-katex').forEach(function(el) {
+            try {
+                katex.render(el.textContent.trim(), el, {
+                    throwOnError: false,
+                    displayMode: false,
+                    output: 'html'
+                });
+            } catch(e) { console.warn('[KaTeX] Variable error:', e); }
+        });
+    }
+
+    /* ── Animate variable cards staggered entrance ── */
+    function animateVariables() {
+        var G = typeof gsap !== 'undefined' ? gsap : null;
+        var cards = document.querySelectorAll('.var-card');
+        if (cards.length > 0 && G) {
+            G.fromTo(cards,
+                { opacity: 0, y: 20, scale: 0.9 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.5, stagger: 0.1, delay: 0.8, ease: 'back.out(1.4)' }
+            );
+        }
+    }
+
+    /* ── Animate main formula entrance ── */
+    function animateMainFormula() {
+        var G = typeof gsap !== 'undefined' ? gsap : null;
+        var main = document.getElementById('formula-main');
+        if (main && G) {
+            G.fromTo(main,
+                { opacity: 0, scale: 0.9, y: 30 },
+                { opacity: 1, scale: 1, y: 0, duration: 0.8, delay: 0.3, ease: 'power3.out' }
+            );
+            // Subtle gold shimmer after entrance
+            G.to(main, {
+                boxShadow: '0 4px 40px rgba(0,0,0,0.3), 0 0 40px rgba(255,215,0,0.12)',
+                duration: 0.6,
+                delay: 1.1,
+                yoyo: true,
+                repeat: 1,
+                ease: 'sine.inOut'
+            });
+        }
+    }
+
+    /* ── Init on load ── */
+    window.addEventListener('load', function() {
+        renderKaTeX();
+        setTimeout(function() {
+            animateMainFormula();
+            animateVariables();
+        }, 200);
+    });
+})();
+</script>
+
+</body>
+</html>

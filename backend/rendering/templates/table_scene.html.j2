@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartStudyInstructor — {{ scene.topic }}</title>
+
+    <style>
+        {% include '_base.css.j2' %}
+
+        /* ═══════════════════════════════════════════════════════
+           TABLE SCENE — Premium Glassmorphic Data Table
+        ═══════════════════════════════════════════════════════ */
+
+        /* Override layout columns: 35% left, 65% right */
+        .left-panel  { width: 35%; }
+        .right-panel { left: 35%; width: 65%; }
+
+        /* ── Right panel: Dark navy for table display ── */
+        .right-panel {
+            background: #0C1223;
+            color: #F5F3EE;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            justify-content: flex-start;
+        }
+
+        /* ── Table Stage ── */
+        .table-stage {
+            position: relative;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 56px 52px 40px;
+            overflow: hidden;
+        }
+
+        /* Ambient background glow */
+        .table-stage::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 45% at 50% 30%, rgba(79,142,247,0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 40% 35% at 80% 70%, rgba(255,215,0,0.025) 0%, transparent 60%);
+            pointer-events: none;
+        }
+
+        /* ── Table Stage Heading ── */
+        .table-stage-heading {
+            font-family: 'Playfair Display', serif;
+            font-size: 30px;
+            font-weight: 700;
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .table-heading-underline {
+            width: 50px;
+            height: 2px;
+            background: linear-gradient(90deg, #C9B99A, transparent);
+            margin-bottom: 28px;
+            border-radius: 2px;
+        }
+
+        /* ── Glassmorphic Table Container ── */
+        .table-glass-card {
+            position: relative;
+            z-index: 2;
+            flex: 1;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(201,185,154,0.12);
+            border-radius: 16px;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow:
+                0 8px 48px rgba(0,0,0,0.35),
+                inset 0 1px 0 rgba(255,255,255,0.06);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Mac-style card header ── */
+        .table-card-header {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            gap: 7px;
+            background: rgba(255,255,255,0.03);
+            border-bottom: 1px solid rgba(201,185,154,0.08);
+            flex-shrink: 0;
+        }
+
+        .table-card-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        .table-card-dot.red   { background: #FF5F57; }
+        .table-card-dot.amber { background: #FEBC2E; }
+        .table-card-dot.green { background: #28C840; }
+
+        .table-card-title {
+            margin-left: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.5);
+        }
+
+        /* ── Table Scroll Area ── */
+        .table-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        /* Hide scrollbar */
+        .table-scroll::-webkit-scrollbar { width: 4px; }
+        .table-scroll::-webkit-scrollbar-track { background: transparent; }
+        .table-scroll::-webkit-scrollbar-thumb { background: rgba(201,185,154,0.2); border-radius: 4px; }
+
+        /* ── Data Table ── */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* ── Table Headers ── */
+        .data-table thead {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+        }
+
+        .table-header-cell {
+            padding: 16px 20px;
+            background: linear-gradient(135deg, #4F8EF7, #7FB3FF);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            text-align: left;
+            white-space: nowrap;
+            transition: background 0.4s ease;
+        }
+
+        .table-header-cell:first-child {
+            border-radius: 0;
+        }
+
+        .table-header-cell:last-child {
+            border-radius: 0;
+        }
+
+        /* ── Table Rows ── */
+        .table-row {
+            transition: opacity 0.3s ease, background 0.3s ease, box-shadow 0.4s ease;
+        }
+
+        .table-row:nth-child(odd) {
+            background: rgba(255,255,255,0.02);
+        }
+
+        .table-row:nth-child(even) {
+            background: rgba(255,255,255,0.04);
+        }
+
+        .table-row:last-child .table-cell {
+            border-bottom: none;
+        }
+
+        /* ── Table Cells ── */
+        .table-cell {
+            padding: 14px 20px;
+            font-size: 15px;
+            font-weight: 400;
+            color: rgba(255,255,255,0.8);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            transition: background 0.4s ease, color 0.3s ease, box-shadow 0.4s ease;
+            position: relative;
+        }
+
+        .table-cell:first-child {
+            font-weight: 600;
+            color: rgba(255,255,255,0.92);
+        }
+
+        /* ── Focused Row State ── */
+        .table-row-focused {
+            background: rgba(255,215,0,0.06) !important;
+        }
+
+        .table-row-focused .table-cell {
+            color: #FFD700 !important;
+            font-weight: 600;
+        }
+
+        .table-row-focused .table-cell:first-child {
+            border-left: 3px solid #FFD700;
+        }
+
+        /* ── Left Panel Overrides ── */
+        .table-left-desc {
+            max-width: 440px;
+        }
+
+        /* Bullets on left panel */
+        .table-bullets-zone {
+            margin-top: 28px;
+        }
+
+        .table-bullets-zone .bullet {
+            border-bottom-color: rgba(255,255,255,0.06);
+        }
+
+        .table-bullets-zone .bullet-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 18px;
+        }
+
+        .table-bullets-zone .b-active .bullet-text {
+            color: rgba(255,255,255,0.95) !important;
+        }
+
+        .table-bullets-zone .bullet-num {
+            background: rgba(79,142,247,0.15);
+            color: #4F8EF7;
+        }
+
+        .table-bullets-zone .b-active .bullet-num {
+            background: #4F8EF7 !important;
+            color: #fff !important;
+        }
+
+        /* ── Progress strip ── */
+        .table-progress-strip {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: rgba(255,215,0,0.08);
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .table-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #FFD700, #C9B99A);
+            position: relative;
+        }
+
+        .table-progress-fill::after {
+            content: '';
+            position: absolute;
+            right: 0; top: 0;
+            width: 40px; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5));
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+
+        /* ── Focus Label Tooltip ── */
+        .table-focus-label {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            z-index: 10;
+            display: none;
+            padding: 6px 14px;
+            background: rgba(255,215,0,0.12);
+            border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            color: #FFD700;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            opacity: 0;
+            transform: translateY(-8px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .table-focus-label.visible {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ── Takeaway override for dark bg ── */
+        #takeaway-bar {
+            background: linear-gradient(135deg, rgba(26,37,53,0.95), rgba(12,18,35,0.95));
+            border-top: 2px solid rgba(255,215,0,0.2);
+        }
+
+        /* ── Column focus glow ── */
+        @keyframes columnGlow {
+            0%, 100% { box-shadow: 0 0 8px rgba(255,215,0,0.15); }
+            50%      { box-shadow: 0 0 20px rgba(255,215,0,0.3); }
+        }
+    </style>
+
+    {% include '_gsap_head.html.j2' %}
+</head>
+<body>
+
+<!-- ── TIMELINE DATA ── -->
+<script>
+    window.TIMELINE_DATA = {{ timeline_data | tojson }};
+</script>
+
+<!-- ── Analogy background overlay ── -->
+<div id="analogy-overlay"></div>
+
+<!-- ════════════════════════════════════════════════════════
+     LEFT PANEL — Navy
+════════════════════════════════════════════════════════ -->
+<div class="left-panel" id="kb-target">
+    <div class="topic-chip" id="topic-chip">{{ scene.topic }}</div>
+
+    <h1 class="slide-heading playfair" id="heading-left">
+        {% set heading = scene.heading_left %}
+        {% if scene.gold_word %}
+            {% set heading = heading | replace(scene.gold_word,
+                '<span class="gold-word">' ~ scene.gold_word ~ '</span>', 1) %}
+        {% endif %}
+        {{ heading | safe }}
+    </h1>
+
+    <p class="slide-description inter table-left-desc" id="left-desc">
+        {{ scene.left_description or '' }}
+    </p>
+
+    <!-- Bullets on left panel -->
+    {% if scene.bullets %}
+    <div class="table-bullets-zone bullets-zone" id="bullets-zone">
+        {% for bullet in scene.bullets %}
+        {% if bullet is mapping %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ bullet.num or "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">
+                {% set btext = bullet.text or '' %}
+                {% if bullet.zoom_word %}
+                    {% set btext = btext | replace(bullet.zoom_word,
+                        '<span class="zoom-word-inline" id="zw_' ~ loop.index0 ~ '">'
+                        ~ bullet.zoom_word ~ '</span>', 1) %}
+                {% endif %}
+                {{ btext | safe }}
+            </div>
+        </div>
+        {% else %}
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="bullet-num">{{ "%02d"|format(loop.index) }}</div>
+            <div class="bullet-text inter">{{ bullet }}</div>
+        </div>
+        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="scene-counter">
+        Scene {{ "%02d"|format(scene.scene_index) }} /
+        {{ "%02d"|format(scene.total_scenes) }}
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     RIGHT PANEL — Glassmorphic Table Display
+════════════════════════════════════════════════════════ -->
+<div class="right-panel" id="right-panel">
+
+    <!-- Progress strip -->
+    <div class="table-progress-strip">
+        <div class="table-progress-fill"
+             style="width:{{ (scene.scene_index / scene.total_scenes * 100)|round }}%;"></div>
+    </div>
+
+    <!-- Table Stage -->
+    <div class="table-stage" id="table-stage">
+
+        <!-- Stage Heading -->
+        {% if scene.heading_right %}
+        <div class="table-stage-heading" id="heading-right">{{ scene.heading_right }}</div>
+        <div class="table-heading-underline"></div>
+        {% endif %}
+
+        <!-- Glassmorphic Table Card -->
+        {% if scene.table_data %}
+        <div class="table-glass-card" id="table-glass-card">
+
+            <!-- Mac-style header -->
+            <div class="table-card-header">
+                <div class="table-card-dot red"></div>
+                <div class="table-card-dot amber"></div>
+                <div class="table-card-dot green"></div>
+                <span class="table-card-title">Data Table</span>
+            </div>
+
+            <!-- Focus Label -->
+            <div class="table-focus-label" id="table-focus-label"></div>
+
+            <!-- Table Content -->
+            <div class="table-scroll">
+                <table class="data-table" id="data-table">
+                    <thead>
+                        <tr>
+                            {% for header in scene.table_data.headers %}
+                            <th class="table-header-cell" data-col="{{ loop.index0 }}">{{ header }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in scene.table_data.rows %}
+                        <tr class="table-row" data-row="{{ loop.index0 }}">
+                            {% for cell in row %}
+                            <td class="table-cell" data-col="{{ loop.index0 }}" data-row="{{ loop.parent.loop.index0 }}">{{ cell }}</td>
+                            {% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        {% endif %}
+
+    </div><!-- /table-stage -->
+
+    <!-- Takeaway bar -->
+    <div id="takeaway-bar">
+        <span class="takeaway-icon">💡</span>
+        <span class="takeaway-label inter">Key Takeaway</span>
+        <span class="takeaway-text inter">{{ scene.takeaway }}</span>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     AVATAR
+════════════════════════════════════════════════════════ -->
+{% if scene.avatar_path and not (scene.avatar_config and scene.avatar_config.hidden_for_ffmpeg) %}
+<div id="avatar-ring" style="position: absolute; border: 2px solid rgba(74,144,217,0.5); border-radius: 50%; opacity: 0; pointer-events: none; z-index: 50;"></div>
+<img id="avatar" src="{{ scene.avatar_path }}" alt="Instructor" style="position: absolute; border-radius: 50%; object-fit: cover; opacity: 0; pointer-events: none; z-index: 50;" />
+{% endif %}
+
+<!-- Scene Transition Flash -->
+<div id="scene-flash" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; opacity: 0; pointer-events: none; z-index: 9999;"></div>
+
+<!-- V12.5 Teacher Draw Layers -->
+{% include '_gsap_layers.html.j2' %}
+
+<!-- V12.5 GSAP Timeline Engine -->
+<script>
+    {% include '_timeline_engine.js.j2' %}
+</script>
+
+<!-- ═══════════════════════════════════════════════════════
+     TABLE-SPECIFIC: Entrance Animations
+═══════════════════════════════════════════════════════ -->
+<script>
+(function() {
+    'use strict';
+
+    var G = typeof gsap !== 'undefined' ? gsap : null;
+
+    /* ── Animate table card entrance ── */
+    function animateTableEntrance() {
+        var card = document.getElementById('table-glass-card');
+        if (card && G) {
+            G.fromTo(card,
+                { opacity: 0, y: 40, scale: 0.96 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.8, delay: 0.4, ease: 'power3.out' }
+            );
+        }
+
+        /* Staggered row entrance */
+        var rows = document.querySelectorAll('.table-row');
+        if (rows.length > 0 && G) {
+            G.fromTo(rows,
+                { opacity: 0, x: 20 },
+                { opacity: 1, x: 0, duration: 0.4, stagger: 0.08, delay: 0.8, ease: 'power2.out' }
+            );
+        }
+
+        /* Header shimmer */
+        var headers = document.querySelectorAll('.table-header-cell');
+        if (headers.length > 0 && G) {
+            G.fromTo(headers,
+                { opacity: 0, y: -10 },
+                { opacity: 1, y: 0, duration: 0.5, stagger: 0.06, delay: 0.5, ease: 'power2.out' }
+            );
+        }
+    }
+
+    /* ── Init on load ── */
+    window.addEventListener('load', function() {
+        setTimeout(animateTableEntrance, 200);
+    });
+})();
+</script>
+
+</body>
+</html>

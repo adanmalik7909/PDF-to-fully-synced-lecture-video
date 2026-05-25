@@ -54,6 +54,8 @@ class BlueprintPipeline:
         self.temp_dir = tempfile.mkdtemp(prefix="blueprint_v10_")
         # Semaphore(1): Send only 1 scene at a time to Kaggle to prevent GPU race conditions
         self.semaphore = asyncio.Semaphore(1)
+        # UPGRADE C: Semaphore(3) limits concurrent Playwright browsers to avoid memory crashes
+        self.pw_semaphore = asyncio.Semaphore(3)
         log_info(f"[V14 Pipeline] Temp dir: {self.temp_dir}")
 
     def cleanup(self):
@@ -140,12 +142,15 @@ class BlueprintPipeline:
         is_lipsync = False
         
         # Use Kaggle Cloud Client if URL is configured
-        if settings.CLOUD_RENDER_URL:
+        cloud_url = settings.CLOUD_RENDER_URL.strip() if settings.CLOUD_RENDER_URL else ""
+        if cloud_url:
             from app.services.kaggle_client import KaggleCloudClient
-            kaggle = KaggleCloudClient(settings.CLOUD_RENDER_URL)
-            _safe_print(f"    [Kaggle] Requesting lipsync for {scene_id}...")
+            kaggle = KaggleCloudClient(cloud_url)
+            _safe_print(f"    [Kaggle] Requesting lipsync for {scene_id} via '{cloud_url}'...")
             
             try:
+                import time
+                t0 = time.time()
                 # Use semaphore to prevent overloading the single GPU on Kaggle
                 async with self.semaphore:
                     lipsync_video = await kaggle.generate_lipsync(
@@ -157,7 +162,8 @@ class BlueprintPipeline:
                 if lipsync_video and os.path.exists(lipsync_video):
                     actual_avatar = lipsync_video
                     is_lipsync = True
-                    _safe_print(f"    [Kaggle] Lipsync success: {os.path.basename(actual_avatar)}")
+                    elapsed = time.time() - t0
+                    _safe_print(f"    [Kaggle] Lipsync success in {elapsed:.2f}s: {os.path.basename(actual_avatar)}")
                 else:
                     _safe_print(f"    [Kaggle] Warning: Lipsync failed or returned empty. Using static.")
             except Exception as e:
@@ -172,7 +178,7 @@ class BlueprintPipeline:
         scene_data["avatar_config"] = {
             "visible": True,
             "is_lipsync": is_lipsync,
-            "hidden_for_ffmpeg": True # The template will render the div but keep it transparent
+            "hidden_for_ffmpeg": is_lipsync  # Only hide HTML avatar when lipsync video exists to overlay
         }
 
         scene_data["_audio_path"] = audio_path  # for TimelineBuilder
@@ -180,6 +186,35 @@ class BlueprintPipeline:
         # -- Build Master Timeline JSON --
         builder = TimelineBuilder(scene=scene_data, words=words, total_ms=total_duration_ms)
         timeline_data = builder.build()
+
+        # -- Animation Brain: Intelligent animation sequencing --
+        try:
+            from core.animation_brain import AnimationBrain
+            brain = AnimationBrain()
+            narration = scene_data.get('narration', '')
+            diagram_img = None
+            # Find actual diagram image path (not base64)
+            for ref in refs:
+                candidates = [ref, os.path.join('static/uploads/diagrams', os.path.basename(str(ref)))]
+                for c in candidates:
+                    if os.path.exists(c) and not str(c).startswith('data:'):
+                        diagram_img = c
+                        break
+                if diagram_img:
+                    break
+
+            brain_events = brain.generate_animation_events(
+                scene=scene_data,
+                narration_text=narration,
+                word_timestamps=words,
+                diagram_image_path=diagram_img
+            )
+            if brain_events:
+                timeline_data['events'].extend(brain_events)
+                timeline_data['events'].sort(key=lambda e: e['start_ms'])
+                _safe_print(f'    [AnimationBrain] {len(brain_events)} intelligent events added')
+        except Exception as e:
+            _safe_print(f'    [AnimationBrain] Skipped (non-fatal): {e}')
 
         # -- Render HTML (with TIMELINE_DATA injected) --
         router = SceneRouter()
@@ -190,16 +225,19 @@ class BlueprintPipeline:
 
         # -- Playwright: record .webm (runs in isolated thread with its own loop) --
         loop = asyncio.get_event_loop()
-        webm_path = await loop.run_in_executor(
-            None,  # default ThreadPoolExecutor
-            lambda: record_scene_video(
-                html_content=html,
-                timeline_data=timeline_data,
-                total_duration_ms=total_duration_ms,
-                output_dir=self.temp_dir,
-                scene_id=scene_id,
+        
+        # UPGRADE C: Limit to 3 concurrent Playwright processes
+        async with self.pw_semaphore:
+            webm_path = await loop.run_in_executor(
+                None,  # default ThreadPoolExecutor
+                lambda: record_scene_video(
+                    html_content=html,
+                    timeline_data=timeline_data,
+                    total_duration_ms=total_duration_ms,
+                    output_dir=self.temp_dir,
+                    scene_id=scene_id,
+                )
             )
-        )
         if not webm_path:
             log_error(f"  [V10] Playwright recording failed for {scene_id}")
             return None
