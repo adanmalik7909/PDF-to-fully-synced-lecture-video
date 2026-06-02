@@ -258,22 +258,26 @@ body.scene-ready { opacity: 1; }
     display: flex;
     align-items: flex-start;
     gap: 18px;
-    padding: 18px 0;
+    padding: 18px 22px;
+    border: 2.5px solid transparent;
     border-bottom: 1px solid rgba(26, 37, 53, 0.09);
+    border-radius: 14px;
     opacity: 0.85;
     transform: translateX(0);
     transition:
-        opacity 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-        transform 0.5s cubic-bezier(0.23, 1, 0.32, 1),
-        background 0.3s ease;
-    border-radius: 0;
+        opacity 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+        transform 0.4s cubic-bezier(0.23, 1, 0.32, 1),
+        background 0.4s ease,
+        border-color 0.4s ease,
+        box-shadow 0.4s ease;
     position: relative;
+    margin: 4px 0;
 }
-.bullet:last-child { border-bottom: none; }
+.bullet:last-child { border-bottom-color: transparent; }
 
 /* Bullet states */
 .b-visible {
-    opacity: 0.95 !important;
+    opacity: 0.92 !important;
     transform: translateX(0) !important;
 }
 .b-active {
@@ -282,25 +286,24 @@ body.scene-ready { opacity: 1; }
     border: 2.5px solid var(--gold) !important;
     border-radius: 14px !important;
     padding: 18px 22px !important;
-    margin: 6px -22px !important;
-    box-shadow: 0 12px 36px rgba(212, 168, 83, 0.45), 0 0 15px rgba(212, 168, 83, 0.2) !important;
-    transform: scale(1.03) translateY(-3px) !important;
-    transition: all 0.4s cubic-bezier(0.25, 1, 0.32, 1) !important;
+    box-shadow: 0 8px 28px rgba(212, 168, 83, 0.40), 0 0 0 4px rgba(212, 168, 83, 0.10) !important;
+    transform: scale(1.02) !important;
     z-index: 5;
 }
 /* If the active bullet/card is inside a dark panel */
 .left-panel .b-active,
 .left-panel .bullet.b-active,
 .table-bullets-zone .b-active {
-    background: var(--navy-light) !important;
+    background: rgba(36, 51, 71, 0.95) !important;
     border-color: var(--gold) !important;
-    box-shadow: 0 12px 36px rgba(212, 168, 83, 0.35) !important;
+    box-shadow: 0 8px 28px rgba(212, 168, 83, 0.35), 0 0 0 4px rgba(212, 168, 83, 0.10) !important;
 }
 .b-active .bullet-num {
     background: var(--gold) !important;
     color: var(--navy) !important;
     transform: scale(1.15) !important;
-    box-shadow: 0 0 15px rgba(212, 168, 83, 0.6) !important;
+    box-shadow: 0 0 12px rgba(212, 168, 83, 0.5) !important;
+    transition: all 0.3s ease !important;
 }
 .b-active .bullet-text {
     color: var(--navy) !important;
@@ -313,7 +316,7 @@ body.scene-ready { opacity: 1; }
     color: var(--white) !important;
 }
 .b-done {
-    opacity: 0.95 !important; /* Keep it fully visible, no fading! */
+    opacity: 0.88 !important;
     background: transparent !important;
     border: 2.5px solid transparent !important;
     box-shadow: none !important;
