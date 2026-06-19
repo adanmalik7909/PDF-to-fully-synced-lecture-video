@@ -1,400 +1,310 @@
-# SmartStudyInstructor MVP
+# SmartStudyInstructor — Unified AI-Powered Tutoring & Lecture Generator
 
-An integrated classroom monitoring and intelligent tutoring system for FYP (Final Year Project).
+> An advanced final-year project (FYP) featuring role-based classroom management, a PDF-to-lecture RAG pipeline, real-time Playwright-rendered lecture videos, and remote GPU-accelerated talking-head avatars (Wav2Lip / OmniAvatar).
 
-## Features
+---
 
-- **Role-based Authentication**: Admin, Teacher, Student (JWT tokens)
-- **PDF Knowledge Base (RAG)**: Upload PDFs → Auto-generate lecture scripts & quizzes
-- **Classroom LED Mode**: Projector-based lecture player with live monitoring
-- **Phone Detection**: YOLO-based cheating detection with evidence snapshots
-- **Teacher Dashboard**: Session reports with cheating events & timestamps
-- **Student Personal Tuition**: Q&A, quizzes, notes & summaries
+## 📸 Overview & Key Features
+`SmartStudyInstructor` is a comprehensive educational suite designed to automate lecture preparation, deliver highly interactive learning material, and monitor student engagement.
 
-## Quick Start
+*   **Intelligent Pedagogical Engine:** Generates highly structured **Scene DNA** scripts (Intro, Topic Concept, Bullet Points, Diagram Zoom, Worked Example, Interactive Quiz, Outro) from uploaded PDF textbooks using Gemini 2.0 Flash / Groq LLaMA 3.
+*   **Audio-Visual Synced Lecture Player:** Headless Chromium captures virtual-time HTML/JS animations (using GSAP and Canvas) and composites them with TTS audio using an exact-duration FFmpeg rendering pipeline.
+*   **Vector RAG Q&A System:** Chunk-based PDF parsing with ChromaDB vector storage and Sentence-Transformers embeddings for real-time, context-grounded student queries.
+*   **Classroom Vision System:** YOLOv8-based live webcam feed monitoring to detect student phone usage/cheating, logging timestamps and snapshots to the teacher dashboard.
+*   **Remote GPU Lip-Sync Integration:** Offloads computationally intensive talking-head video generation (Wav2Lip on Kaggle, OmniAvatar on Google Colab) to free cloud runtimes, linking them dynamically via secure Ngrok tunnels.
 
-### 1. Install Dependencies
+---
 
-```bash
-cd backend
-pip install -r requirements.txt
-```
-
-### 2. Configure Environment
-
-The `.env` file is pre-configured. For production, change:
-```
-JWT_SECRET_KEY=your-secure-random-key-here
-```
-
-### 3. Start Backend
-
-```bash
-python run.py
-```
-
-Backend will run at: `http://localhost:8000`
-
-API Docs: `http://localhost:8000/docs`
-
-### 4. Test Authentication (Optional)
-
-```bash
-# In another terminal, from backend directory
-python test_auth.py
-```
-
-### 5. Enable LLM Generation (Phase 4) - Optional but Recommended
-
-**Option A: Use Gemini AI (Free - Recommended)**
-
-1. Get free API key: https://makersuite.google.com/app/apikey
-2. Add to `.env`:
-   ```
-   GEMINI_API_KEY=your_api_key_here
-   ```
-3. Restart server
-4. Test endpoints with `python test_llm.py`
-
-**Option B: Use Mock Mode (No Setup)**
-
-- Skip GEMINI_API_KEY - system automatically uses realistic mock responses
-- Good for testing without API key
-
-### 6. Test LLM Features (Phase 4)
-
-```bash
-# Test Q&A, lecture generation, quiz generation
-python test_llm.py
-```
-
-### 7. Open Frontend
-
-Open `frontend/index.html` in a web browser.
-
-## Demo Credentials
+## 🛠️ System Architecture
 
 ```
-Teacher:  username: teacher01  password: Teacher@123
-Student:  username: student01  password: Student@123
-Admin:    username: admin01    password: Admin@123
+                       ┌──────────────────────────────────────────────┐
+                       │           PDF Ingestion & RAG Layer          │
+                       │   PDF Upload ➔ ChromaDB Vector Indexing      │
+                       └──────────────────────┬───────────────────────┘
+                                              │
+                                              ▼
+                       ┌──────────────────────────────────────────────┐
+                       │          Pedagogical Script Engine           │
+                       │    LLM Script Generation (Scene DNA JSON)    │
+                       └──────────────────────┬───────────────────────┘
+                                              │
+                                              ▼
+                       ┌──────────────────────────────────────────────┐
+                       │              Audio & TTS Layer               │
+                       │    Edge-TTS (per-word Millisecond Timings)   │
+                       └──────────────────────┬───────────────────────┘
+                                              │
+                                              ▼
+                       ┌──────────────────────────────────────────────┐
+                       │          GPU Talking-Head Rendering          │
+                       │  Kaggle (Wav2Lip) or Colab (OmniAvatar 1.3B) │
+                       └──────────────────────┬───────────────────────┘
+                                              │
+                                              ▼
+                       ┌──────────────────────────────────────────────┐
+                       │          Playwright Capture & Sync           │
+                       │ Virtual Time Frame Capture ➔ WebM Recording   │
+                       └──────────────────────┬───────────────────────┘
+                                              │
+                                              ▼
+                       ┌──────────────────────────────────────────────┐
+                       │             FFmpeg Composition               │
+                       │   Combines WebM + Lipsync AV + Subtitles     │
+                       └──────────────────────────────────────────────┘
 ```
 
-## Project Structure
+---
+
+## 📋 Comprehensive Tech Stack
+
+| Layer | Technologies | Role / Feature |
+| :--- | :--- | :--- |
+| **Backend Framework** | FastAPI 0.104, SQLAlchemy 2.0, Pydantic v2, SQLite3 | Core server REST endpoints, database access, configuration, and JSON parsing. |
+| **AI Models (LLM)** | Gemini 2.0 Flash, Groq LLaMA 3.3/4 | Core scripting engine, quiz generators, and general Q&A pipeline. |
+| **Vector DB & RAG** | ChromaDB, Sentence-Transformers (MiniLM) | PDF text chunking, storage, and contextual document search. |
+| **TTS & Timing** | Edge-TTS, PyTTSx3, Google TTS | Natural voice generation with precise word-level millisecond alignment. |
+| **Video Capture** | Playwright (Headless Chromium), GSAP, JS Audio Clock | High-speed, frame-perfect virtual rendering of canvas-based scenes. |
+| **Composition** | FFmpeg | Video assembly, audio layering, subtitles, and final MP4 encoding. |
+| **Cloud GPU Avatar** | Wav2Lip (Kaggle Cloud), OmniAvatar 1.3B (Colab) | Lipsync talking-head generation using external GPU hardware. |
+| **Vision System** | YOLOv8n (Ultralytics) | Real-time object detection for mobile phones in camera feed. |
+| **Frontend UI** | HTML5, Vanilla JavaScript, CSS3 | Teacher dashboard, Student RAG Q&A interface, and Lecture player. |
+
+---
+
+## 📂 Project Structure
 
 ```
 SmartStudyInstructor/
-├── backend/              # FastAPI backend
-│   ├── app/             # Main application code
-│   │   ├── auth/        # JWT & password handling
-│   │   ├── database/    # SQLAlchemy models & schemas
-│   │   ├── routes/      # API endpoints
-│   │   ├── rag/         # RAG pipeline (Phase 3)
-│   │   ├── vision/      # YOLO detection (Phase 7)
-│   │   └── utils/       # Logging, file handling
-│   ├── static/          # Uploads & models
-│   ├── schema.sql       # SQLite schema
-│   ├── requirements.txt # Dependencies
-│   ├── run.py           # Startup script
-│   └── test_auth.py     # Auth testing
-├── frontend/            # Web UI (HTML/CSS/JS)
-│   ├── index.html       # Login page
-│   ├── register.html    # Registration page
-│   ├── dashboard.html   # Teacher dashboard (Phase 8)
-│   ├── classroom.html   # Classroom player (Phase 6)
-│   ├── student_tuition.html  # Student mode (Phase 9)
-│   ├── css/
-│   │   └── style.css    # Global styles
-│   └── js/
-│       ├── api.js       # API client
-│       ├── auth.js      # Auth logic
-│       └── dashboard.js # Dashboard logic
-└── ARCHITECTURE.md      # Detailed architecture
-
+├── backend/                  # FastAPI Web Backend
+│   ├── app/
+│   │   ├── auth/            # JWT authentication & user accounts
+│   │   ├── database/        # SQLite/SQLAlchemy schema configuration
+│   │   ├── rag/             # Document extraction, ingestion, and vector search
+│   │   ├── routes/          # API route definitions
+│   │   ├── services/        # Core processing logic
+│   │   │   ├── blueprint_pipeline.py # Orchestrates RAG -> Video pipeline
+│   │   │   └── kaggle_client.py      # Cloud API connector for Wav2Lip
+│   │   └── utils/           # Shared utility tools & logs
+│   ├── core/
+│   │   ├── timeline_builder.py # Computes timing triggers for HTML scenes
+│   │   └── tts_engine.py       # Manages TTS synthesis and timestamp mapping
+│   ├── rendering/
+│   │   ├── ffmpeg_pipeline.py  # Assembles, overlays, and encodes final MP4s
+│   │   ├── playwright_capture.py # Operates headless capture instances
+│   │   ├── scene_router.py     # Serves Jinja2 templates for capture
+│   │   └── templates/          # Jinja2 HTML slides (diagram zoom, example, etc.)
+│   ├── static/               # Assets, uploads, processed video/audio
+│   ├── scripts/              # Setup, debug, and population scripts
+│   ├── run.py                # Local startup runner
+│   ├── requirements.txt      # Production package dependencies
+│   └── .env.example          # Template configuration
+├── frontend/                 # Client UI Files (Vanilla HTML/CSS/JS)
+│   ├── index.html            # Gateway Login screen
+│   ├── dashboard.html        # Interactive teacher management console
+│   ├── classroom.html        # Smart projector/LED student screen
+│   └── student_tuition.html  # Student-facing personalized study screen
+├── Kaggle_Cloud_Engine.ipynb # Jupyter notebook for Kaggle Wav2Lip server
+└── README.md                 # Project Documentation
 ```
 
-## API Documentation
+---
 
-Once backend is running, visit: `http://localhost:8000/docs`
+## 🚀 Local Installation & Setup
 
-### Authentication Endpoints
+### 1. Prerequisite Installations
+*   **Python:** Install Python (v3.9 or v3.10 recommended).
+*   **FFmpeg:** Ensure FFmpeg is installed and added to your system's environment variable path (so that `ffmpeg` commands can run globally in terminals).
+*   **Chrome/Playwright:** Playwright handles headless browser capture.
 
-#### Register
-```
-POST /api/auth/register
-Body: {
-  "username": "teacher01",
-  "email": "teacher@example.com",
-  "password": "SecurePassword123",
-  "role": "teacher"  // admin, teacher, or student
-}
-Response: { user_id, username, email, role, message }
-```
-
-#### Login
-```
-POST /api/auth/login
-Body: { "username": "teacher01", "password": "SecurePassword123" }
-Response: { user_id, username, email, role, access_token, token_type }
-```
-
-#### Get Profile
-```
-GET /api/auth/me
-Headers: Authorization: Bearer <token>
-Response: { id, username, email, role, is_active, created_at }
-```
-
-### RAG Pipeline Endpoints (NEW - Phase 3)
-
-#### Upload PDF
-```
-POST /api/content/upload
-Headers: Authorization: Bearer <token>
-Body: multipart/form-data (PDF file)
-Response: { content_id, filename, file_size, message }
-```
-
-#### Check Ingestion Status
-```
-GET /api/content/rag/status/{content_id}
-Headers: Authorization: Bearer <token>
-Response: { content_id, filename, status, total_chunks, embedding_model }
-```
-
-Status values: `pending`, `processing`, `completed`, `failed`
-
-#### Query Knowledge Base
-```
-POST /api/rag/query
-Headers: Authorization: Bearer <token>
-Body: {
-  "content_id": 1,
-  "query": "What is machine learning?",
-  "num_results": 5
-}
-Response: { query, content_id, chunks[], total_chunks_available }
-```
-
-#### List User's Contents
-```
-GET /api/content/list
-Headers: Authorization: Bearer <token>
-Response: [{ id, filename, file_size, rag_status, total_chunks }]
-```
-
-#### RAG Service Health
-```
-GET /api/rag/health
-Response: { status, embeddings_model, vector_store, collections_count }
-```
-
-### LLM Integration Endpoints (NEW - Phase 4)
-
-#### Ask Question (RAG-based Q&A)
-```
-POST /api/rag/ask
-Headers: Authorization: Bearer <token>
-Body: {
-  "question": "What is machine learning?",
-  "content_id": 1,
-  "num_results": 5
-}
-Response: { question, answer, context_chunks[], sources_used, content_title }
-```
-
-#### Generate Lecture Script
-```
-POST /api/lecture/generate
-Headers: Authorization: Bearer <token> (Teacher only)
-Body: {
-  "content_id": 1,
-  "objectives": ["Understand concepts", "Apply techniques"],
-  "title": "Optional title"
-}
-Response: { content_id, lecture_script{}, generation_time_seconds, model_used }
-```
-
-#### Generate Quiz
-```
-POST /api/quiz/generate
-Headers: Authorization: Bearer <token> (Teacher only)
-Body: {
-  "content_id": 1,
-  "num_questions": 10,
-  "difficulty": "medium"
-}
-Response: { content_id, quiz{}, generation_time_seconds, model_used }
-```
-
-#### LLM Service Health
-```
-GET /api/health/llm
-Response: { status, llm_type, model, message }
-```
-
-## Technology Stack
-
-| Component | Technology | Why |
-|-----------|-----------|-----|
-| Backend | FastAPI | Light, fast, async |
-| Database | SQLite | No server needed, embedded |
-| Auth | JWT + bcrypt | Stateless, secure |
-| Embeddings | sentence-transformers | Free, offline |
-| Vector Store | ChromaDB | Lightweight, in-memory |
-| Vision | YOLOv8n | Nano model, real-time detection |
-| Frontend | Vanilla JS | No npm build, direct HTML/JS |
-
-## Development Status
-
-- [x] Phase 1: Project Setup & Infrastructure
-- [x] Phase 2: Authentication System (JWT + Registration/Login)
-- [x] Phase 3: RAG Pipeline (ChromaDB + embeddings + PDF extraction)
-- [x] Phase 4: LLM Integration (Lecture & quiz generation) ⭐ NEW
-- [ ] Phase 5: Document Management (PDF upload UI)
-- [ ] Phase 6: Classroom Sessions (LED player)
-- [ ] Phase 7: Vision Pipeline (YOLO phone detection)
-- [ ] Phase 8: Dashboard (Reports & analytics)
-- [ ] Phase 9: Student Tuition (Q&A + notes)
-- [ ] Phase 10: Frontend Integration
-- [ ] Phase 11: Testing & Refinement
-- [ ] Phase 12: Deployment Prep
-
-## Database Schema
-
-14 tables with full relationships:
-- **users** - Role-based user accounts
-- **contents** - Uploaded PDFs/documents
-- **knowledge_bases** - ChromaDB vector mappings
-- **sessions** - Classroom & tuition sessions
-- **vision_events** - Phone detection records (snapshot + confidence + timestamp)
-- **assessments** - Quiz metadata
-- **questions** - Individual questions
-- **submissions** - Student quiz responses
-- **answers** - Individual answers
-- **notes** - Student personal notes
-- **summaries** - AI-generated summaries
-- **logs** - Audit trail
-
-See [schema.sql](backend/schema.sql) for full details.
-
-## Key Implementation Details
-
-### JWT Authentication
-- **Token Lifetime**: 24 hours (configurable in .env)
-- **Algorithm**: HS256
-- **Secret Key**: Change in production (.env file)
-- **Payload**: { sub: user_id, role: user_role, exp: expiration_time }
-
-### Password Security
-- **Algorithm**: Bcrypt (passlib)
-- **Automatic Hashing**: On registration
-- **Verification**: Constant-time comparison
-
-### Database
-- **Type**: SQLite3
-- **Init**: Automatic on app startup
-- **File**: `smart_study.db` in backend root
-
-## Testing
-
-### Unit Tests
+### 2. Setup Virtual Environment
+Run the following commands in the project directory to configure your virtual environment:
 ```bash
-pytest backend/tests/
+# Navigate to the backend directory
+cd backend
+
+# Create a virtual environment
+python -m venv .venv
+
+# Activate the virtual environment
+# On Windows:
+.venv\Scripts\activate
+# On Linux/macOS:
+source .venv/bin/activate
 ```
 
-### API Tests
+### 3. Install Dependencies
+Install all package requirements inside the active virtual environment:
 ```bash
-# Auth endpoints
-python backend/test_auth.py
-
-# RAG pipeline (Phase 3)
-python backend/test_rag.py
+pip install -r requirements.txt
+playwright install chromium
 ```
 
-### Manual Testing
-1. Open `frontend/index.html`
-2. Register new account or login with demo credentials
-3. Check API docs at `http://localhost:8000/docs`
-
-## Troubleshooting
-
-### "Address already in use" error
+### 4. Set Environment Configuration
+Create a `.env` file in the `backend/` directory using the provided template:
 ```bash
-# Kill process on port 8000
-# Windows: netstat -ano | findstr :8000
-# Linux/Mac: lsof -i :8000 | grep LISTEN | awk '{print $2}' | xargs kill
+cp .env.example .env
 ```
+Open `.env` and fill in your keys:
+*   `GEMINI_API_KEY`: Needed for automatic PDF lecture scripting.
+*   `GROQ_API_KEY`: Required for diagram content analysis and LLaMA 4 Scout features.
+*   `CLOUD_RENDER_URL`: Leave empty initially (will be filled once the Kaggle server is running).
 
-### Database locked error
+### 5. Initialize the Database and Seed Demo Users
+Run the seeder script to populate default accounts for Admin, Teacher, and Student roles:
 ```bash
-# Delete smart_study.db and restart
-rm backend/smart_study.db
-python backend/run.py
+python scripts/seed_demo.py
 ```
 
-### Token expired
-- Login again to get a new token
-- Token validity: 24 hours
-
-### CORS errors
-- Ensure backend is running
-- Check API_BASE_URL in frontend/js/api.js
-
-## License
-
-MIT - Final Year Project
-
-## Notes
-
-- MVP focuses on end-to-end pipeline over accuracy
-- All free/open-source tools used
-- Single integrated application (one backend + simple web UI)
-- Runs on any laptop with Python 3.8+
-- No external service dependencies
-- No external service dependencies
-
-## DEMO Quick Run (DEMO_MODE)
-
-This project includes a lightweight demo mode that avoids heavy native dependencies and ML binaries. Use these steps for a fast local demo.
-
-1. From the repository backend folder create/activate a venv (optional but recommended):
-
-```powershell
-cd "c:\Users\PMLS\Desktop\Prototype\SmartStudyInstructor\backend"
-python -m venv ..\.venv
-& "C:/Users/PMLS/Desktop/Prototype/.venv/Scripts/Activate.ps1"
+### 6. Start the Backend API Server
+Launch the local development server:
+```bash
+python run.py
 ```
+The backend API documentation is now live at: `http://localhost:8000/docs`
 
-2. Install the demo dependency set:
+---
 
-```powershell
-pip install -r requirements_demo.txt
-```
+## ☁️ Setting Up Cloud GPU Render Servers
 
-3. Seed demo data (creates demo user and sample content):
+Since rendering video and computing lipsync lip movements require high-performance hardware, the project features integrations with free GPU-based Jupyter environments (Kaggle & Google Colab).
 
-```powershell
-$env:DEMO_MODE='1'; python .\scripts\seed_demo.py
-```
+---
 
-4. Start the backend in demo mode:
+### 1. Kaggle Wav2Lip Server Setup (Recommended for Full Video Overlays)
+This notebook configures a Flask-based API running inside a Kaggle instance with a T4 GPU, exposing the GPU service using `pyngrok`.
 
-```powershell
-$env:DEMO_MODE='1'; & "C:/Users/PMLS/Desktop/Prototype/.venv/Scripts/python.exe" -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
+#### Setup Steps:
+1.  **Register/Login to Kaggle:** Go to [Kaggle](https://www.kaggle.com).
+2.  **Upload the Notebook:** Create a new Jupyter notebook on Kaggle and import/upload the file [Kaggle_Cloud_Engine.ipynb](file:///c:/Users/PMLS/Desktop/Prototype/SmartStudyInstructor/Kaggle_Cloud_Engine.ipynb) found in the root directory of this project.
+3.  **Configure Notebook Environment:**
+    *   Set **Accelerator** to **GPU T4 x2** or **GPU T4** in the right-hand panel settings.
+    *   Enable **Internet** access (Crucial: Kaggle requires phone number verification to enable internet access. Ensure your account is verified).
+4.  **Add Ngrok Token:**
+    *   Sign up at [ngrok](https://ngrok.com) for a free account and copy your Auth Token.
+    *   In **Cell 2** of the Kaggle notebook, replace the placeholder token in `NGROK_TOKEN` with your personal ngrok token:
+        ```python
+        NGROK_TOKEN = "your_personal_ngrok_token"
+        ```
+5.  **Run All Cells:** Run the notebook cells sequentially.
+    *   **Cell 1:** Downloads model checkpoints (`wav2lip_gan.pth`, `s3fd.pth`), pulls official repositories, and patches dependencies.
+    *   **Cell 2:** Initializes the Flask application, loads the model into GPU memory, connects to the Ngrok tunnel, and launches the server.
+6.  **Connect Local API to Cloud:**
+    *   Copy the public address printed at the end of the Kaggle notebook output (e.g., `https://xxxx-xx-xx-xxx.ngrok-free.app`).
+    *   Open your local `backend/.env` file and set it as `CLOUD_RENDER_URL`:
+        ```ini
+        CLOUD_RENDER_URL=https://xxxx-xx-xx-xxx.ngrok-free.app
+        ```
+    *   The backend pipeline will now automatically forward TTS voice clips to Kaggle to generate highly synced 280px circular talking-head videos overlaying the slideshows.
 
-5. Open URLs in browser:
+---
 
-- Student UI: http://127.0.0.1:8000/tuition/student/ui
-- API docs:   http://127.0.0.1:8000/docs
+### 2. OmniAvatar Colab GPU Setup (Alternative Model)
+Used for rendering high-fidelity interactive talking avatars using Google Colab.
 
-Automated smoke test
+#### Setup Steps:
+1.  **Open Google Colab:** Locate `OmniAvatar_SmartStudy_Colab.ipynb` (or create a new notebook) and load it into Google Colab.
+2.  **Hardware Check:** Navigate to **Runtime ➔ Change runtime type** and select **T4 GPU**.
+3.  **Execute the Cells:** Run cells 1 through 5 to fetch weights and run the host script.
+4.  **Environment Link:**
+    *   Once loaded, copy the ngrok URL generated inside the output logs.
+    *   Put the URL into your local environment:
+        ```ini
+        COLAB_AVATAR_URL=https://xxxx-xx-xx-xxx.ngrok-free.app
+        ```
+    *   Or open `http://localhost:8000/lecture-player` in your browser and paste the URL directly into the GPU connection field.
 
-```powershell
-& "C:/Users/PMLS/Desktop/Prototype/.venv/Scripts/python.exe" scripts/test_demo_endpoints.py
-```
+---
 
-Notes
-- If you need full RAG and vision features, install the full `requirements.txt` and follow `RUNNING.md` for persistence and agent setup.
-- If package builds fail on Windows, prefer `DEMO_MODE=1` for a friction-free local demo.
+## 👥 Demo Logins
+
+Use these default accounts to access the application after seeding:
+
+| Role | Username | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin01` | `Admin@123` |
+| **Teacher** | `teacher01` | `Teacher@123` |
+| **Student** | `student01` | `Student@123` |
+
+---
+
+## 🧪 Testing the Pipeline
+You can trigger verification scripts to validate the API and rendering operations:
+
+*   **Endpoint Smoke Tests:**
+    ```bash
+    python scripts/test_demo_endpoints.py
+    ```
+*   **Comprehensive E2E Pipeline Verification:** Checks RAG extraction, TTS, Playwright Capture, and FFmpeg assembly locally:
+    ```bash
+    python test_awaited.py
+    ```
+
+---
+
+## 🔀 Git Repository Strategy: Managing Public and Private Repositories
+If you want to maintain your active code inside a **private repository** for development, while pushing stable versions to a **public/portfolio repository** on GitHub, you can manage both from a single local directory.
+
+Below are the two recommended approaches to keep them separate:
+
+### Approach 1: Single Folder with Two Git Remotes (Recommended)
+This approach keeps everything in one directory. You simply configure your git client to target two different GitHub remote addresses.
+
+1.  **Verify your current private repository remote:**
+    ```bash
+    git remote -v
+    # Typically outputs:
+    # origin  https://github.com/username/private-repo.git (fetch)
+    # origin  https://github.com/username/private-repo.git (push)
+    ```
+2.  **Add your second public/portfolio repository as a new remote:**
+    Create a new, empty repository on GitHub for your public display. Then add it locally:
+    ```bash
+    # Replace the URL with your second repository's git address
+    git remote add portfolio https://github.com/username/public-repo.git
+    ```
+3.  **Verify that both remotes are registered:**
+    ```bash
+    git remote -v
+    # Should display:
+    # origin     https://github.com/username/private-repo.git (private development)
+    # portfolio  https://github.com/username/public-repo.git (public portfolio)
+    ```
+4.  **Pushing changes to each repository:**
+    *   To push development commits to your private repo:
+        ```bash
+        git push origin main
+        ```
+    *   To push stable, cleaned versions to your public portfolio repo:
+        ```bash
+        git push portfolio main
+        ```
+
+> [!WARNING]
+> Before pushing to a public repository, verify that no active credentials, private ngrok tokens, or secret keys are committed in your source control history or stored in local config files. Keep your `.env` listed in your `.gitignore` to prevent leaks.
+
+---
+
+### Approach 2: Two Separate Directories (Strict Separation)
+If you want to make different modifications for your public portfolio (e.g., removing specific configuration scripts, adding portfolio badges, or deleting local debug logs) without affecting the private production setup:
+
+1.  **Clone the private project to a new directory:**
+    Create a copy of your project folder somewhere else on your drive.
+2.  **Initialize or re-link Git inside the copy:**
+    ```bash
+    cd c:\Path\To\PublicProjectFolder
+    
+    # Remove existing remote links
+    git remote remove origin
+    
+    # Associate it with your new public repository
+    git remote add origin https://github.com/username/public-repo.git
+    ```
+3.  **Perform cleanup & push:**
+    Modify the codebase freely (delete `.env`, test tokens, etc.) and push:
+    ```bash
+    git add .
+    git commit -m "Initial commit for public portfolio"
+    git push -u origin main
+    ```
+    This completely isolates the public folder from your main private environment folder.

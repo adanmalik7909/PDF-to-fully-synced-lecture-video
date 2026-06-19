@@ -1,0 +1,979 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor — Diagram, Table & Formula Visual Effects
+   Handles Fabric canvas rendering, KaTeX math rendering,
+   table row focus spotlights, and responsive camera zooms.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    var _diagImg = document.getElementById('diagram-img');
+    var _annSVG  = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+    var _cursor  = document.getElementById('cursor-dot');
+
+    /* ─── Diagram Animation Helpers ────────────────────────── */
+    window.DiagAnim = {
+        _getImgRect: function () {
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            return _diagImg ? _diagImg.getBoundingClientRect() : null;
+        },
+        _getSVGRect: function () {
+            if (!_annSVG) _annSVG = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+            return _annSVG ? _annSVG.getBoundingClientRect() : null;
+        },
+        regionToPx: function (r) {
+            var ir = this._getImgRect();
+            if (!ir) return null;
+            return {
+                x:  ir.left + r.x_pct * ir.width,
+                y:  ir.top  + r.y_pct * ir.height,
+                w:  r.w_pct * ir.width,
+                h:  r.h_pct * ir.height,
+                cx: ir.left + (r.x_pct + r.w_pct/2) * ir.width,
+                cy: ir.top  + (r.y_pct + r.h_pct/2) * ir.height
+            };
+        },
+        zoomTo: function (region, scale, dur) {
+            var wrap = document.getElementById('diagram-zoom-wrapper') || 
+                       document.getElementById('diagram-viewport') || 
+                       document.getElementById('diagram-zoom-target') || 
+                       document.getElementById('diagram-wrapper');
+            if (!wrap) return;
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            
+            var G = typeof gsap !== 'undefined' ? gsap : null;
+            if (G && _diagImg) {
+                var ir = _diagImg.getBoundingClientRect();
+                var rcx = (region.x_pct + region.w_pct/2) * ir.width;
+                var rcy = (region.y_pct + region.h_pct/2) * ir.height;
+                G.to(wrap, {
+                    scale: scale || 2.2,
+                    x: (ir.width/2 - rcx) * (scale || 2.2),
+                    y: (ir.height/2 - rcy) * (scale || 2.2),
+                    duration: dur || 0.9,
+                    ease: 'power3.inOut'
+                });
+            }
+        },
+        zoomOut: function (dur) {
+            var wrap = document.getElementById('diagram-zoom-wrapper') || 
+                       document.getElementById('diagram-viewport') || 
+                       document.getElementById('diagram-zoom-target') || 
+                       document.getElementById('diagram-wrapper');
+            if (!wrap) return;
+            var G = typeof gsap !== 'undefined' ? gsap : null;
+            if (G) {
+                G.to(wrap, { scale: 1, x: 0, y: 0, duration: dur || 0.85, ease: 'power2.inOut' });
+            }
+        },
+        drawCircle: function (region, color) {
+            if (!_annSVG) _annSVG = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            if (!_annSVG || !_diagImg) return;
+            
+            var ir = _diagImg.getBoundingClientRect();
+            var sr = _annSVG.getBoundingClientRect();
+            var ox = ir.left - sr.left, oy = ir.top - sr.top;
+            var cx = ox + (region.x_pct + region.w_pct/2) * ir.width;
+            var cy = oy + (region.y_pct + region.h_pct/2) * ir.height;
+            var rx = region.w_pct * ir.width / 2 + 12;
+            var ry = region.h_pct * ir.height / 2 + 12;
+            
+            var el = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+            el.setAttribute('cx', cx); el.setAttribute('cy', cy);
+            el.setAttribute('rx', rx); el.setAttribute('ry', ry);
+            el.setAttribute('fill', 'none'); el.setAttribute('stroke', color || '#00E5FF');
+            el.setAttribute('stroke-width', '3.5'); el.setAttribute('opacity', '0');
+            
+            var perim = 2 * Math.PI * Math.sqrt((rx*rx + ry*ry) / 2);
+            el.setAttribute('stroke-dasharray', perim);
+            el.setAttribute('stroke-dashoffset', perim);
+            el.setAttribute('filter', 'drop-shadow(0 0 6px ' + (color || '#00E5FF') + ')');
+            _annSVG.appendChild(el);
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to(el, { opacity: 1, strokeDashoffset: 0, duration: 1.3, ease: 'power2.out' });
+                setTimeout(function () {
+                    gsap.to(el, { opacity: 0, duration: 0.5, onComplete: function () { el.remove(); } });
+                }, 5000);
+            } else {
+                el.style.opacity = '1';
+                el.style.strokeDashoffset = '0';
+                setTimeout(function () { el.remove(); }, 5000);
+            }
+        },
+        drawHighlight: function (region, color) {
+            if (!_annSVG) _annSVG = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            if (!_annSVG || !_diagImg) return;
+            
+            var ir = _diagImg.getBoundingClientRect();
+            var sr = _annSVG.getBoundingClientRect();
+            var x = (ir.left - sr.left) + region.x_pct * ir.width - 8;
+            var y = (ir.top  - sr.top)  + region.y_pct * ir.height - 8;
+            var w = region.w_pct * ir.width + 16;
+            var h = region.h_pct * ir.height + 16;
+            
+            var el = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            el.setAttribute('x', x); el.setAttribute('y', y);
+            el.setAttribute('width', w); el.setAttribute('height', h); el.setAttribute('rx', '8');
+            el.setAttribute('fill', (color || '#FF4444') + '33');
+            el.setAttribute('stroke', color || '#FF4444'); el.setAttribute('stroke-width', '2.5');
+            el.setAttribute('opacity', '0');
+            _annSVG.appendChild(el);
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to(el, { opacity: 1, duration: 0.4, ease: 'power2.out' });
+                gsap.to(el, { opacity: 1, boxShadow: '0 0 20px ' + (color || '#FF4444'), yoyo: true, repeat: 2, duration: 0.5, delay: 0.5 });
+                setTimeout(function () {
+                    gsap.to(el, { opacity: 0, duration: 0.4, onComplete: function () { el.remove(); } });
+                }, 5500);
+            } else {
+                el.style.opacity = '1';
+                setTimeout(function () { el.remove(); }, 5500);
+            }
+        },
+        drawArrow: function (fromR, toR, label, color) {
+            if (!_annSVG) _annSVG = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            if (!_annSVG || !_diagImg) return;
+            
+            var ir = _diagImg.getBoundingClientRect();
+            var sr = _annSVG.getBoundingClientRect();
+            var ox = ir.left - sr.left, oy = ir.top - sr.top;
+            var x1 = ox + (fromR.x_pct + fromR.w_pct) * ir.width;
+            var y1 = oy + (fromR.y_pct + fromR.h_pct/2) * ir.height;
+            var x2 = ox + toR.x_pct * ir.width;
+            var y2 = oy + (toR.y_pct + toR.h_pct/2) * ir.height;
+            var c  = color || '#FFD700';
+            var mid = Date.now();
+            var ns = 'http://www.w3.org/2000/svg';
+            var defs = _annSVG.querySelector('defs') || _annSVG.insertBefore(document.createElementNS(ns, 'defs'), _annSVG.firstChild);
+            
+            var mkId = 'mk' + mid;
+            var mk = document.createElementNS(ns, 'marker');
+            mk.setAttribute('id', mkId); mk.setAttribute('viewBox', '0 0 10 10');
+            mk.setAttribute('refX', '8'); mk.setAttribute('refY', '5');
+            mk.setAttribute('markerWidth', '7'); mk.setAttribute('markerHeight', '7');
+            mk.setAttribute('orient', 'auto');
+            
+            var mp = document.createElementNS(ns, 'path');
+            mp.setAttribute('d', 'M2 1L8 5L2 9'); mp.setAttribute('fill', 'none');
+            mp.setAttribute('stroke', c); mp.setAttribute('stroke-width', '1.5');
+            mp.setAttribute('stroke-linecap', 'round');
+            mk.appendChild(mp); defs.appendChild(mk);
+            
+            var pLen = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            var line = document.createElementNS(ns, 'line');
+            line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+            line.setAttribute('x2', x2); line.setAttribute('y2', y2);
+            line.setAttribute('stroke', c); line.setAttribute('stroke-width', '3');
+            line.setAttribute('marker-end', 'url(#' + mkId + ')');
+            line.setAttribute('stroke-dasharray', pLen); line.setAttribute('stroke-dashoffset', pLen);
+            line.setAttribute('opacity', '0');
+            line.setAttribute('filter', 'drop-shadow(0 0 4px ' + c + ')');
+            _annSVG.appendChild(line);
+            
+            if (typeof gsap !== 'undefined') {
+                gsap.to(line, { opacity: 1, strokeDashoffset: 0, duration: 0.85, ease: 'power2.inOut' });
+                if (label) {
+                    var txt = document.createElementNS(ns, 'text');
+                    txt.setAttribute('x', (x1 + x2) / 2); txt.setAttribute('y', (y1 + y2) / 2 - 12);
+                    txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('fill', c);
+                    txt.setAttribute('font-size', '14'); txt.setAttribute('font-weight', '600');
+                    txt.setAttribute('opacity', '0'); txt.textContent = label;
+                    _annSVG.appendChild(txt);
+                    gsap.to(txt, { opacity: 1, duration: 0.3, delay: 0.8 });
+                }
+                setTimeout(function () {
+                    gsap.to(line, { opacity: 0, duration: 0.4, onComplete: function () { line.remove(); } });
+                }, 6000);
+            } else {
+                line.style.opacity = '1';
+                line.style.strokeDashoffset = '0';
+                setTimeout(function () { line.remove(); }, 6000);
+            }
+        },
+        moveCursor: function (region) {
+            if (!_cursor) _cursor = document.getElementById('cursor-dot');
+            if (!_cursor) return;
+            var px = this.regionToPx(region);
+            if (!px) return;
+            if (typeof gsap !== 'undefined') {
+                if (parseFloat(_cursor.style.opacity || 0) < 0.1) {
+                    gsap.set(_cursor, { left: px.cx, top: px.cy, opacity: 0 });
+                    gsap.to(_cursor, { opacity: 1, duration: 0.3 });
+                } else {
+                    gsap.to(_cursor, { left: px.cx, top: px.cy, duration: 0.65, ease: 'power2.inOut' });
+                }
+                gsap.fromTo(_cursor, { scale: 1 }, {
+                    scale: 1.9, duration: 0.3, ease: 'power2.out',
+                    onComplete: function () { gsap.to(_cursor, { scale: 1, duration: 0.2 }); }
+                });
+            } else {
+                _cursor.style.left = px.cx + 'px';
+                _cursor.style.top = px.cy + 'px';
+                _cursor.style.opacity = '1';
+            }
+        },
+        clearAll: function () {
+            if (_annSVG) {
+                var children = Array.from(_annSVG.children);
+                children.forEach(function (c) {
+                    if (c.tagName !== 'defs') {
+                        if (typeof gsap !== 'undefined') {
+                            gsap.to(c, { opacity: 0, duration: 0.3, onComplete: function () { c.remove(); } });
+                        } else {
+                            c.remove();
+                        }
+                    }
+                });
+            }
+            if (_cursor) {
+                if (typeof gsap !== 'undefined') gsap.to(_cursor, { opacity: 0, duration: 0.3 });
+                else _cursor.style.opacity = '0';
+            }
+        },
+        focusOnRegion: function (regionId, duration) {
+            // Find in window.DIAGRAM_DATA with robust fallbacks
+            var regions = [];
+            if (window.DIAGRAM_DATA) {
+                regions = window.DIAGRAM_DATA.regions || window.DIAGRAM_DATA.components || window.DIAGRAM_DATA.elements || [];
+            }
+            const region = regions.find(function(r) {
+                return r.region_id === regionId || r.id === regionId || r.label === regionId;
+            });
+            if (!region) {
+                console.warn("Region not found in DIAGRAM_DATA:", regionId);
+                return;
+            }
+            
+            // Support both array [x,y,w,h] and object {x, y, width, height}
+            let rx = 0, ry = 0, rw = 0.2, rh = 0.2;
+            if (region.bbox) {
+                if (Array.isArray(region.bbox)) {
+                    rx = region.bbox[0];
+                    ry = region.bbox[1];
+                    rw = region.bbox[2];
+                    rh = region.bbox[3];
+                } else if (typeof region.bbox === 'object') {
+                    rx = region.bbox.x !== undefined ? region.bbox.x : 0;
+                    ry = region.bbox.y !== undefined ? region.bbox.y : 0;
+                    rw = region.bbox.width !== undefined ? region.bbox.width : (region.bbox.w !== undefined ? region.bbox.w : 0.2);
+                    rh = region.bbox.height !== undefined ? region.bbox.height : (region.bbox.h !== undefined ? region.bbox.h : 0.2);
+                }
+            }
+            var bbox = {
+                x_pct: region.x_pct !== undefined ? region.x_pct : rx,
+                y_pct: region.y_pct !== undefined ? region.y_pct : ry,
+                w_pct: region.w_pct !== undefined ? region.w_pct : rw,
+                h_pct: region.h_pct !== undefined ? region.h_pct : rh
+            };
+            
+            const scale = region.zoom_scale || region.zoom_level || 2.2;
+            this.zoomTo(bbox, scale, 0.9);
+            
+            var role = region.role || region.annotation_type || 'circle';
+            var color = region.color || region.highlight_color_hex || region.annotation_color || '#00E5FF';
+            
+            if (role === 'highlight' || role === 'highlight_box' || role === 'process' || role === 'decision') {
+                this.drawHighlight(bbox, color);
+            } else {
+                this.drawCircle(bbox, color);
+            }
+            this.moveCursor(bbox);
+            
+            if (duration) {
+                var self = this;
+                setTimeout(function() {
+                    self.zoomOut(0.85);
+                    self.clearAll();
+                }, duration);
+            }
+        },
+        focusOnPrecomputedRegion: function (regionId, payload) {
+            var wrap = document.getElementById('diagram-zoom-wrapper') || 
+                       document.getElementById('diagram-viewport') || 
+                       document.getElementById('diagram-zoom-target') || 
+                       document.getElementById('diagram-wrapper');
+            if (!wrap) return;
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            
+            const G = typeof gsap !== 'undefined' ? gsap : null;
+            if (G && _diagImg) {
+                // Calculate scale ratio between actual width and assumed width
+                const actualW = _diagImg.offsetWidth || _diagImg.getBoundingClientRect().width || 1920;
+                const assumedW = payload.assumed_width || 1920;
+                const scaleRatio = actualW / assumedW;
+                
+                const tx = payload.x * scaleRatio;
+                const ty = payload.y * scaleRatio;
+                const scale = payload.scale;
+                
+                G.to(wrap, {
+                    scale: scale,
+                    x: tx,
+                    y: ty,
+                    duration: 0.9,
+                    ease: 'power3.inOut'
+                });
+                
+                // Add annotation visual highlights
+                var regions = [];
+                if (window.DIAGRAM_DATA) {
+                    regions = window.DIAGRAM_DATA.regions || window.DIAGRAM_DATA.components || window.DIAGRAM_DATA.elements || [];
+                }
+                const region = regions.find(r => r.region_id === regionId || r.id === regionId || r.label === regionId);
+                if (region) {
+                    let rx = 0, ry = 0, rw = 0.2, rh = 0.2;
+                    if (region.bbox) {
+                        if (Array.isArray(region.bbox)) {
+                            rx = region.bbox[0];
+                            ry = region.bbox[1];
+                            rw = region.bbox[2];
+                            rh = region.bbox[3];
+                        } else if (typeof region.bbox === 'object') {
+                            rx = region.bbox.x !== undefined ? region.bbox.x : 0;
+                            ry = region.bbox.y !== undefined ? region.bbox.y : 0;
+                            rw = region.bbox.width !== undefined ? region.bbox.width : (region.bbox.w !== undefined ? region.bbox.w : 0.2);
+                            rh = region.bbox.height !== undefined ? region.bbox.height : (region.bbox.h !== undefined ? region.bbox.h : 0.2);
+                        }
+                    }
+                    var bbox = {
+                        x_pct: region.x_pct !== undefined ? region.x_pct : rx,
+                        y_pct: region.y_pct !== undefined ? region.y_pct : ry,
+                        w_pct: region.w_pct !== undefined ? region.w_pct : rw,
+                        h_pct: region.h_pct !== undefined ? region.h_pct : rh
+                    };
+                    var role = region.role || region.annotation_type || 'circle';
+                    var color = region.color || region.highlight_color_hex || region.annotation_color || '#00E5FF';
+                    
+                    if (role === 'highlight' || role === 'highlight_box' || role === 'process' || role === 'decision') {
+                        this.drawHighlight(bbox, color);
+                    } else {
+                        this.drawCircle(bbox, color);
+                    }
+                    this.moveCursor(bbox);
+                }
+            }
+        },
+        currentActiveRegionId: null,
+        diagramSegments: null,
+        initSegments: function () {
+            const TD = window.TIMELINE_DATA || {};
+            const segs = TD.segments || [];
+            this.diagramSegments = segs
+                .filter(s => s.type === 'diagram_zoom')
+                .sort((a, b) => a.start_ms - b.start_ms);
+        },
+        updateActiveRegionByTime: function (currentMs) {
+            if (this.diagramSegments === null) {
+                this.initSegments();
+            }
+
+            let activeRegionId = null;
+            let activeSegment = null;
+            
+            // Search backwards to pick the latest overlapping segment
+            for (let i = this.diagramSegments.length - 1; i >= 0; i--) {
+                const seg = this.diagramSegments[i];
+                if (currentMs >= seg.start_ms && currentMs < seg.end_ms) {
+                    activeRegionId = seg.region_id;
+                    activeSegment = seg;
+                    break;
+                }
+            }
+
+            // On scene end, reset diagram zoom
+            const TD = window.TIMELINE_DATA || {};
+            const totalMs = TD.total_duration_ms || 10000;
+            if (currentMs >= totalMs) {
+                activeRegionId = null;
+                activeSegment = null;
+            }
+
+            if (this.currentActiveRegionId !== activeRegionId) {
+                if (activeRegionId) {
+                    if (activeSegment.payload && activeSegment.payload.scale !== undefined) {
+                        this.focusOnPrecomputedRegion(activeRegionId, activeSegment.payload);
+                    } else {
+                        this.focusOnRegion(activeRegionId);
+                    }
+                } else {
+                    this.zoomOut(0.85);
+                    this.clearAll();
+                }
+                this.currentActiveRegionId = activeRegionId;
+            }
+        },
+        currentActiveFlowId: null,
+        flowSegments: null,
+        activeFlowGroup: null,
+        initFlowSegments: function () {
+            const TD = window.TIMELINE_DATA || {};
+            const segs = TD.segments || [];
+            this.flowSegments = segs
+                .filter(s => s.type === 'diagram_flow')
+                .sort((a, b) => a.start_ms - b.start_ms);
+        },
+        animateFlow: function (connectorId, payload, durationSec) {
+            // Clean up any existing active flow animation
+            if (this.activeFlowGroup) {
+                const oldGroup = this.activeFlowGroup;
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(oldGroup, { opacity: 0, duration: 0.4, onComplete: () => oldGroup.remove() });
+                } else {
+                    oldGroup.remove();
+                }
+                this.activeFlowGroup = null;
+            }
+
+            if (!_diagImg) _diagImg = document.getElementById('diagram-img');
+            if (!_annSVG) _annSVG = document.getElementById('annotation-svg') || document.getElementById('diagram-svg-overlay');
+            if (!_diagImg || !_annSVG) {
+                console.warn("[DiagAnim] Image or SVG overlay missing for flow animation.");
+                return;
+            }
+
+            const pixelPath = payload.pixel_path;
+            if (!pixelPath || pixelPath.length === 0) {
+                console.warn("[DiagAnim] Pixel path missing for connector:", connectorId);
+                return;
+            }
+
+            // Calculate current scale ratio comparing live image size to precomputed width (1920)
+            const actualW = _diagImg.offsetWidth || _diagImg.getBoundingClientRect().width || 1920;
+            const scaleRatio = actualW / 1920.0;
+
+            const ir = _diagImg.getBoundingClientRect();
+            const sr = _annSVG.getBoundingClientRect();
+            const ox = ir.left - sr.left;
+            const oy = ir.top - sr.top;
+
+            // Map all path points to screen coordinates aligned with image placement
+            const mappedPoints = pixelPath.map(pt => ({
+                x: ox + pt.x * scaleRatio,
+                y: oy + pt.y * scaleRatio
+            }));
+
+            // Construct SVG path "d" attribute string
+            let dPath = `M ${mappedPoints[0].x} ${mappedPoints[0].y}`;
+            for (let i = 1; i < mappedPoints.length; i++) {
+                dPath += ` L ${mappedPoints[i].x} ${mappedPoints[i].y}`;
+            }
+
+            const ns = 'http://www.w3.org/2000/svg';
+            const flowGroup = document.createElementNS(ns, 'g');
+            flowGroup.setAttribute('id', `flow_group_${connectorId}`);
+
+            // Draw base passive pipeline visual route (subtle styling)
+            const baseLine = document.createElementNS(ns, 'path');
+            baseLine.setAttribute('d', dPath);
+            baseLine.setAttribute('fill', 'none');
+            baseLine.setAttribute('stroke', '#555555');
+            baseLine.setAttribute('stroke-width', '2.5');
+            baseLine.setAttribute('opacity', '0.35');
+            flowGroup.appendChild(baseLine);
+
+            // Draw main active flow overlay line
+            const flowLine = document.createElementNS(ns, 'path');
+            flowLine.setAttribute('d', dPath);
+            flowLine.setAttribute('fill', 'none');
+            flowLine.setAttribute('stroke', payload.color || '#00E5FF');
+            flowLine.setAttribute('stroke-width', '4');
+            flowLine.setAttribute('filter', 'drop-shadow(0 0 4px ' + (payload.color || '#00E5FF') + ')');
+
+            if (payload.connector_type === 'dashed') {
+                flowLine.setAttribute('stroke-dasharray', '8,8');
+            }
+            flowGroup.appendChild(flowLine);
+
+            // Create arrowhead marker dynamically on defs
+            var defs = _annSVG.querySelector('defs') || _annSVG.insertBefore(document.createElementNS(ns, 'defs'), _annSVG.firstChild);
+            var mkId = 'flow_marker_' + connectorId;
+            if (!document.getElementById(mkId)) {
+                var mk = document.createElementNS(ns, 'marker');
+                mk.setAttribute('id', mkId);
+                mk.setAttribute('viewBox', '0 0 10 10');
+                mk.setAttribute('refX', '6');
+                mk.setAttribute('refY', '5');
+                mk.setAttribute('markerWidth', '6');
+                mk.setAttribute('markerHeight', '6');
+                mk.setAttribute('orient', 'auto');
+                var mp = document.createElementNS(ns, 'path');
+                mp.setAttribute('d', 'M2 2L8 5L2 8 Z'); // closed arrow shape
+                mp.setAttribute('fill', payload.color || '#00E5FF');
+                mk.appendChild(mp);
+                defs.appendChild(mk);
+            }
+            flowLine.setAttribute('marker-end', `url(#${mkId})`);
+
+            _annSVG.appendChild(flowGroup);
+            this.activeFlowGroup = flowGroup;
+
+            const pathLen = flowLine.getTotalLength ? flowLine.getTotalLength() : 1000;
+            const G = typeof gsap !== 'undefined' ? gsap : null;
+
+            if (G) {
+                // If dashed, animate continuous dashed flow (marching ants effect)
+                if (payload.connector_type === 'dashed') {
+                    // Set stroke-dasharray explicitly to have a nice dash pattern
+                    flowLine.setAttribute('stroke-dasharray', '10,10');
+                    G.fromTo(flowLine, 
+                        { strokeDashoffset: 120 }, 
+                        { strokeDashoffset: 0, duration: durationSec, ease: 'none', repeat: -1 }
+                    );
+                } else {
+                    // Otherwise, animate the line drawing effect
+                    flowLine.setAttribute('stroke-dasharray', pathLen);
+                    G.fromTo(flowLine, 
+                        { strokeDashoffset: pathLen }, 
+                        { strokeDashoffset: 0, duration: durationSec, ease: 'power2.inOut' }
+                    );
+                }
+
+                // Add traveling pulsing circle dot along the path
+                const dot = document.createElementNS(ns, 'circle');
+                dot.setAttribute('r', '7');
+                dot.setAttribute('fill', payload.color || '#FFD700');
+                dot.setAttribute('filter', 'drop-shadow(0 0 6px ' + (payload.color || '#FFD700') + ')');
+                flowGroup.appendChild(dot);
+
+                const obj = { progress: 0 };
+                G.to(obj, {
+                    progress: 1,
+                    duration: durationSec,
+                    ease: 'power1.inOut',
+                    onUpdate: function () {
+                        try {
+                            const pt = flowLine.getPointAtLength(obj.progress * pathLen);
+                            dot.setAttribute('cx', pt.x);
+                            dot.setAttribute('cy', pt.y);
+                        } catch (e) {}
+                    },
+                    onComplete: function () {
+                        try {
+                            const pt = flowLine.getPointAtLength(pathLen);
+                            dot.setAttribute('cx', pt.x);
+                            dot.setAttribute('cy', pt.y);
+                        } catch (e) {}
+                    }
+                });
+            } else {
+                flowLine.style.strokeDashoffset = '0';
+            }
+        },
+        updateActiveFlowByTime: function (currentMs) {
+            if (this.flowSegments === null) {
+                this.initFlowSegments();
+            }
+
+            let activeFlowId = null;
+            let activeSegment = null;
+
+            for (let i = this.flowSegments.length - 1; i >= 0; i--) {
+                const seg = this.flowSegments[i];
+                if (currentMs >= seg.start_ms && currentMs < seg.end_ms) {
+                    activeFlowId = seg.connector_id;
+                    activeSegment = seg;
+                    break;
+                }
+            }
+
+            // Reset on scene end
+            const TD = window.TIMELINE_DATA || {};
+            const totalMs = TD.total_duration_ms || 10000;
+            if (currentMs >= totalMs) {
+                activeFlowId = null;
+                activeSegment = null;
+            }
+
+            if (this.currentActiveFlowId !== activeFlowId) {
+                if (activeFlowId && activeSegment) {
+                    const durationSec = (activeSegment.end_ms - activeSegment.start_ms) / 1000.0;
+                    this.animateFlow(activeFlowId, activeSegment.payload, durationSec);
+
+                    // Camera follow choreographer
+                    if (activeSegment.to_region_id) {
+                        this.focusOnRegion(activeSegment.to_region_id);
+                    } else if (activeSegment.from_region_id) {
+                        this.focusOnRegion(activeSegment.from_region_id);
+                    }
+                } else {
+                    if (this.activeFlowGroup) {
+                        const oldGroup = this.activeFlowGroup;
+                        if (typeof gsap !== 'undefined') {
+                            gsap.to(oldGroup, { opacity: 0, duration: 0.4, onComplete: () => oldGroup.remove() });
+                        } else {
+                            oldGroup.remove();
+                        }
+                        this.activeFlowGroup = null;
+                    }
+                }
+                this.currentActiveFlowId = activeFlowId;
+            }
+        }
+    };
+
+    /* ─── Table Animation Helpers ────────────────────────────── */
+    window.TableAnim = {
+        focusRow: function (rowIndex, color) {
+            var table = document.querySelector('#table-container table') || document.querySelector('table');
+            if (!table) return;
+            var rows = table.querySelectorAll('tr');
+            if (rows[rowIndex + 1]) {
+                var cells = rows[rowIndex + 1].querySelectorAll('td');
+                if (typeof gsap !== 'undefined') {
+                    cells.forEach(function (cell) {
+                        gsap.to(cell, { backgroundColor: (color || '#00E5FF') + '22', boxShadow: 'inset 0 0 0 2px ' + (color || '#00E5FF'), duration: 0.4, ease: 'power2.out' });
+                    });
+                    gsap.fromTo(rows[rowIndex + 1], { y: 4 }, { y: 0, duration: 0.4, ease: 'back.out(1.7)' });
+                }
+            }
+        },
+        focusColumn: function (colIndex, color) {
+            var table = document.querySelector('#table-container table') || document.querySelector('table');
+            if (!table) return;
+            table.querySelectorAll('tr').forEach(function (row) {
+                var cells = row.querySelectorAll('td, th');
+                if (cells[colIndex]) {
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(cells[colIndex], { backgroundColor: (color || '#FFD700') + '22', boxShadow: 'inset 0 0 0 2px ' + (color || '#FFD700'), duration: 0.4 });
+                    }
+                }
+            });
+        },
+        spotlightCell: function (rowIdx, colIdx, color) {
+            var table = document.querySelector('#table-container table') || document.querySelector('table');
+            if (!table) return;
+            var rows = table.querySelectorAll('tr');
+            if (rows[rowIdx + 1]) {
+                var cells = rows[rowIdx + 1].querySelectorAll('td');
+                if (cells[colIdx]) {
+                    if (typeof gsap !== 'undefined') {
+                        gsap.to(cells[colIdx], {
+                            backgroundColor: (color || '#44FF88') + '44',
+                            boxShadow: 'inset 0 0 0 3px ' + (color || '#44FF88') + ', 0 0 12px ' + (color || '#44FF88') + '66',
+                            scale: 1.04, duration: 0.4, ease: 'back.out(1.7)'
+                        });
+                    }
+                }
+            }
+        }
+    };
+
+    /* ─── Formula Animation Helpers ──────────────────────────── */
+    window.FormulaAnim = {
+        _steps: [],
+        init: function (steps) { this._steps = steps || []; },
+        revealStep: function (stepIndex, latex, explanation) {
+            var container = document.getElementById('formula-steps-container');
+            if (!container) return;
+            var stepEl = document.createElement('div');
+            stepEl.className = 'formula-step';
+            stepEl.id = 'fstep-' + stepIndex;
+            stepEl.style.opacity = '0';
+            stepEl.style.transform = 'translateY(20px)';
+            stepEl.style.marginBottom = '12px';
+            stepEl.style.padding = '12px';
+            stepEl.style.borderRadius = '8px';
+            stepEl.style.background = 'rgba(255,255,255,0.03)';
+            stepEl.style.borderLeft = '3px solid #FFD700';
+
+            var formulaDiv = document.createElement('div');
+            formulaDiv.className = 'formula-render';
+            formulaDiv.id = 'frender-' + stepIndex;
+            formulaDiv.style.fontSize = '24px';
+            formulaDiv.style.marginBottom = '6px';
+
+            var explDiv = document.createElement('div');
+            explDiv.className = 'formula-explain';
+            explDiv.textContent = explanation || '';
+            explDiv.style.color = 'rgba(255,255,255,0.7)';
+            explDiv.style.fontSize = '16px';
+
+            stepEl.appendChild(formulaDiv);
+            stepEl.appendChild(explDiv);
+            container.appendChild(stepEl);
+            
+            if (window.katex && latex) {
+                try {
+                    katex.render(latex, formulaDiv, { displayMode: true, throwOnError: false });
+                } catch (e) {
+                    formulaDiv.textContent = latex;
+                }
+            } else {
+                formulaDiv.textContent = latex || '';
+            }
+            if (typeof gsap !== 'undefined') {
+                gsap.to(stepEl, { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' });
+                gsap.fromTo(formulaDiv, { filter: 'drop-shadow(0 0 0px #FFD700)' }, { filter: 'drop-shadow(0 0 14px #FFD700)', duration: 0.5, delay: 0.4, yoyo: true, repeat: 1 });
+            } else {
+                stepEl.style.opacity = '1';
+                stepEl.style.transform = 'none';
+            }
+        },
+        highlightTerm: function (term, color) {
+            var renderEls = document.querySelectorAll('.formula-render .katex');
+            renderEls.forEach(function (el) {
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(el, { color: color || '#FFD700', textShadow: '0 0 12px ' + (color || '#FFD700'), duration: 0.4, yoyo: true, repeat: 1 });
+                }
+            });
+        }
+    };
+
+    /* ─── Main Diagram Effect Router ─────────────────────────── */
+    window.DiagramEffects = {
+        handleEvent: function (t, d, durMs, ev) {
+            var G = typeof gsap !== 'undefined' ? gsap : null;
+            const vp = $('diagram-viewport') || $('diagram-zoom-target') || $('diagram-wrapper') || $('.diagram-zoom-wrapper');
+            const img = $('diagram-img');
+            const stage = $('diag-stage') || $('diagram-card') || $('right-panel');
+
+            if (t === 'diagram_enter') {
+                const card = $('diagram-card') || $('table-glass-card') || stage;
+                if (card) {
+                    card.classList.add('diag-visible');
+                    setTimeout(() => card.classList.add('diag-zoom'), 700);
+                }
+                const av = $('avatar');
+                if (av && G) {
+                    G.to(av, { left: 28, bottom: 28, width: 120, height: 120, duration: 0.6, ease: 'power2.inOut' });
+                }
+            }
+
+            if (t === 'diagram_zoom_in') {
+                if (d.region) {
+                    window.DiagAnim.zoomTo(d.region, d.zoom_scale || 2.0, 0.9);
+                    window.DiagAnim.moveCursor(d.region);
+                } else if (vp && G) {
+                    G.to(vp, { scale: 1.25, transformOrigin: "center center", duration: 1.1, ease: "power3.inOut" });
+                }
+                if (img && G) {
+                    G.to(img, { boxShadow: "0 0 18px 4px rgba(0, 229, 255, 0.5)", yoyo: true, repeat: 2, duration: 0.6, delay: 0.4 });
+                }
+            }
+
+            if (t === 'diagram_zoom_out' || t === 'diagram_zoom_out_smooth' || t === 'zoom_out') {
+                window.DiagAnim.zoomOut(0.85);
+                window.DiagAnim.clearAll();
+            }
+
+            if (t === 'diagram_annotate_circle' && d.region) {
+                window.DiagAnim.drawCircle(d.region, d.annotation_color || '#00E5FF');
+            }
+
+            if (t === 'diagram_highlight_region' && d.region) {
+                window.DiagAnim.drawHighlight(d.region, d.annotation_color || '#FF4444');
+            }
+
+            if (t === 'diagram_flow_arrow' && d.from_region && d.to_region) {
+                window.DiagAnim.drawArrow(d.from_region, d.to_region, d.label || '', d.annotation_color || '#FFD700');
+            }
+
+            if (t === 'diagram_cursor_move' && d.region) {
+                window.DiagAnim.moveCursor(d.region);
+            }
+
+            if (t === 'diagram_overview') {
+                window.DiagAnim.zoomOut(0.6);
+                window.DiagAnim.clearAll();
+            }
+
+            // V14 Camera Panning
+            if (t === 'diagram_pan_zoom') {
+                if (vp && img && d.coords) {
+                    let nx1, ny1, nx2, ny2, nw, nh;
+                    const maxVal = Math.max(...d.coords);
+                    if (maxVal <= 1.0) {
+                        const [x, y, w, h] = d.coords;
+                        nx1 = x; ny1 = y; nw = Math.max(w, 0.05); nh = Math.max(h, 0.05);
+                        nx2 = nx1 + nw; ny2 = ny1 + nh;
+                    } else {
+                        const [ymin, xmin, ymax, xmax] = d.coords;
+                        nx1 = xmin / 1000; ny1 = ymin / 1000; nx2 = xmax / 1000; ny2 = ymax / 1000;
+                        nw = Math.max(nx2 - nx1, 0.05); nh = Math.max(ny2 - ny1, 0.05);
+                    }
+                    const ncx = nx1 + nw / 2;
+                    const ncy = ny1 + nh / 2;
+
+                    const scaleX = 0.80 / nw;
+                    const scaleY = 0.80 / nh;
+                    const scale  = Math.min(Math.max(Math.min(scaleX, scaleY), 1.3), 3.5);
+
+                    const vpW = vp.offsetWidth  || stage.offsetWidth  || 1800;
+                    const vpH = vp.offsetHeight || stage.offsetHeight || 780;
+
+                    let tx = (0.5 - ncx) * vpW * scale;
+                    let ty = (0.5 - ncy) * vpH * scale;
+
+                    const maxTx = (vpW * (scale - 1)) / 2;
+                    const maxTy = (vpH * (scale - 1)) / 2;
+                    tx = Math.max(-maxTx, Math.min(maxTx, tx));
+                    ty = Math.max(-maxTy, Math.min(maxTy, ty));
+
+                    if (G) {
+                        G.to(vp, { scale: scale, x: tx, y: ty, transformOrigin: '50% 50%', duration: 1.2, ease: 'power3.inOut' });
+                    }
+
+                    // Highlight box
+                    const imgW = img.offsetWidth || img.naturalWidth || vpW;
+                    const imgH = img.offsetHeight || img.naturalHeight || vpH;
+                    const imgL = img.offsetLeft || ((vpW - imgW) / 2);
+                    const imgT = img.offsetTop || ((vpH - imgH) / 2);
+
+                    let hBox = $('spatial-highlight');
+                    if (!hBox) {
+                        hBox = document.createElement('div');
+                        hBox.id = 'spatial-highlight';
+                        hBox.className = 'spatial-highlight-box';
+                        hBox.style.position = 'absolute';
+                        hBox.style.pointerEvents = 'none';
+                        vp.appendChild(hBox);
+                    }
+                    hBox.style.left   = (imgL + nx1 * imgW) + 'px';
+                    hBox.style.top    = (imgT + ny1 * imgH) + 'px';
+                    hBox.style.width  = (nw * imgW) + 'px';
+                    hBox.style.height = (nh * imgH) + 'px';
+
+                    if (G) {
+                        G.killTweensOf(hBox);
+                        G.fromTo(hBox, { opacity: 0, scale: 0.8 }, { opacity: 1, scale: 1, duration: 0.5, delay: 0.4, ease: 'back.out(1.5)' });
+                    }
+                }
+            }
+
+            // General fallbacks or special aliases
+            if (t === 'process_flow_pan' || t === 'sequential_zoom_per_region' || t === 'highlight_and_zoom') {
+                if (d && d.region) {
+                    window.DiagAnim.zoomTo(d.region, d.zoom_scale || 1.8, 1.2);
+                    window.DiagAnim.moveCursor(d.region);
+                }
+            }
+
+            // Chalk underlines (Teacher UNDERLINE)
+            if (t === 'teacher_underline' || t === 'term_underline_draw') {
+                const svg = $('diagram-svg-overlay') || $('teacher-draw-svg');
+                const tgt = d.target_selector ? q(d.target_selector) : null;
+                if (svg && tgt && G) {
+                    const rect = tgt.getBoundingClientRect();
+                    const sRect = svg.getBoundingClientRect();
+                    const baseY = rect.bottom - sRect.top + 4;
+                    const x1 = rect.left - sRect.left;
+                    const x2 = rect.right - sRect.left;
+
+                    let points = '';
+                    const step = 15;
+                    for (let x = x1; x <= x2; x += step) {
+                        const yOff = (Math.random() - 0.5) * 4;
+                        points += x + ',' + (baseY + yOff) + ' ';
+                    }
+                    points += x2 + ',' + baseY;
+                    
+                    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+                    poly.setAttribute('points', points);
+                    poly.setAttribute('fill', 'none');
+                    poly.setAttribute('stroke', d.color || '#C9B99A');
+                    poly.setAttribute('stroke-width', '3');
+                    poly.setAttribute('stroke-linecap', 'round');
+                    poly.setAttribute('stroke-linejoin', 'round');
+                    poly.setAttribute('opacity', '0.85');
+                    
+                    const len = poly.getTotalLength ? poly.getTotalLength() : (x2 - x1);
+                    poly.style.strokeDasharray = len;
+                    poly.style.strokeDashoffset = len;
+                    svg.appendChild(poly);
+                    
+                    G.to(poly, { strokeDashoffset: 0, duration: d.draw_duration_sec || 0.6, ease: 'power2.inOut' });
+                    setTimeout(() => {
+                        G.to(poly, { opacity: 0, duration: 0.3, onComplete: () => { poly.remove(); } });
+                    }, durMs - 300);
+                }
+            }
+
+            // Chalk circles (Teacher CIRCLE)
+            if (t === 'teacher_circle' || t === 'spatial_highlight_region') {
+                const svg = $('diagram-svg-overlay') || $('teacher-draw-svg');
+                if (svg && G && d.bbox) {
+                    const iw = img ? img.offsetWidth : 800;
+                    const ih = img ? img.offsetHeight : 600;
+                    const [bx, by, bw, bh] = d.bbox;
+                    const cx = (bx + bw/2) * iw;
+                    const cy = (by + bh/2) * ih;
+                    const rx = (bw/2) * iw + 15;
+                    const ry = (bh/2) * ih + 15;
+
+                    const rmd = () => (Math.random() - 0.5) * 10;
+                    const p = (a, rx, ry) => [cx + rx*Math.cos(a) + rmd(), cy + ry*Math.sin(a) + rmd()];
+
+                    let pathStr = `M ${cx+rx+rmd()} ${cy+rmd()} `;
+                    for (let i = 1; i <= 8; i++) {
+                        const a = i * (Math.PI * 2 / 8);
+                        const [nx, ny] = p(a, rx, ry);
+                        pathStr += `L ${nx} ${ny} `;
+                    }
+                    pathStr += "Z";
+
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', pathStr);
+                    path.setAttribute('fill', 'none');
+                    path.setAttribute('stroke', d.color || '#FFD700');
+                    path.setAttribute('stroke-width', '4');
+                    path.setAttribute('stroke-linecap', 'round');
+                    path.setAttribute('stroke-linejoin', 'round');
+                    path.setAttribute('opacity', '0.85');
+                    svg.appendChild(path);
+
+                    const len = path.getTotalLength ? path.getTotalLength() : 1000;
+                    path.style.strokeDasharray = len;
+                    path.style.strokeDashoffset = len;
+
+                    G.to(path, { strokeDashoffset: 0, duration: 0.8, ease: 'power2.inOut' });
+                    setTimeout(() => {
+                        G.to(path, { opacity: 0, duration: 0.3, onComplete: () => { path.remove(); } });
+                    }, durMs - 300);
+                }
+            }
+
+            // Laser pointer (Teacher LASER)
+            if (t === 'teacher_laser') {
+                let laser = $('laser-pointer');
+                if (laser) {
+                    const x = (d.position_x || 0.5) * window.innerWidth;
+                    const y = (d.position_y || 0.5) * window.innerHeight;
+                    laser.style.display = 'block';
+                    laser.style.opacity = '1';
+                    if (G) {
+                        G.to(laser, { left: x, top: y, duration: 0.3, ease: 'power2.out' });
+                        G.to(laser, { scale: 1.3, duration: 0.3, yoyo: true, repeat: -1, ease: 'sine.inOut' });
+                    }
+                    setTimeout(() => {
+                        if (G) G.killTweensOf(laser);
+                        laser.style.display = 'none';
+                    }, durMs);
+                }
+            }
+
+            // Table focus delegators
+            if (t === 'table_row_focus') {
+                window.TableAnim.focusRow(d.row_index, d.color || '#00E5FF');
+            }
+            if (t === 'table_column_highlight') {
+                window.TableAnim.focusColumn(d.col_index, d.color || '#FFD700');
+            }
+            if (t === 'table_cell_spotlight') {
+                window.TableAnim.spotlightCell(d.row_index, d.col_index, d.color || '#44FF88');
+            }
+
+            // Formula worked example delegators
+            if (t === 'formula_step_reveal') {
+                window.FormulaAnim.revealStep(d.step_index, d.latex, d.explanation);
+            }
+            if (t === 'formula_term_highlight') {
+                window.FormulaAnim.highlightTerm(d.term, d.color || '#FFD700');
+            }
+        }
+    };
+
+})();

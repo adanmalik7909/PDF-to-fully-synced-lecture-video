@@ -1,0 +1,223 @@
+{
+  "page_type": "diagram",
+  "has_visual": true,
+  "main_concept": "Graph structure with nodes and edges",
+  "key_terms": [
+    "graph",
+    "nodes",
+    "edges"
+  ],
+  "visual": {
+    "type": "network",
+    "title": null,
+    "overall_bbox": {
+      "x": 0.0,
+      "y": 0.0,
+      "width": 1.0,
+      "height": 1.0
+    },
+    "explanation_strategy": "sequential",
+    "regions": [
+      {
+        "region_id": "node_A",
+        "bbox": {
+          "x": 0.15,
+          "y": 0.2,
+          "width": 0.15,
+          "height": 0.15
+        },
+        "role": "node",
+        "description": "Node A",
+        "explanation_order": 1,
+        "trigger_keyword": "A",
+        "highlight_color": "blue"
+      },
+      {
+        "region_id": "node_B",
+        "bbox": {
+          "x": 0.65,
+          "y": 0.2,
+          "width": 0.15,
+          "height": 0.15
+        },
+        "role": "node",
+        "description": "Node B",
+        "explanation_order": 2,
+        "trigger_keyword": "B",
+        "highlight_color": "blue"
+      },
+      {
+        "region_id": "node_C",
+        "bbox": {
+          "x": 0.4,
+          "y": 0.6,
+          "width": 0.15,
+          "height": 0.15
+        },
+        "role": "node",
+        "description": "Node C",
+        "explanation_order": 3,
+        "trigger_keyword": "C",
+        "highlight_color": "blue"
+      },
+      {
+        "region_id": "node_D",
+        "bbox": {
+          "x": 0.15,
+          "y": 0.6,
+          "width": 0.15,
+          "height": 0.15
+        },
+        "role": "node",
+        "description": "Node D",
+        "explanation_order": 4,
+        "trigger_keyword": "D",
+        "highlight_color": "blue"
+      }
+    ],
+    "connectors": [
+      {
+        "connector_id": "edge_A_C",
+        "from_region_id": "node_A",
+        "to_region_id": "node_C",
+        "type": "line",
+        "path": [
+          {
+            "x": 0.3,
+            "y": 0.3
+          },
+          {
+            "x": 0.4,
+            "y": 0.45
+          }
+        ],
+        "label": null,
+        "explanation_order": 5,
+        "trigger_keyword": "edge"
+      },
+      {
+        "connector_id": "edge_B_C",
+        "from_region_id": "node_B",
+        "to_region_id": "node_C",
+        "type": "line",
+        "path": [
+          {
+            "x": 0.55,
+            "y": 0.3
+          },
+          {
+            "x": 0.45,
+            "y": 0.45
+          }
+        ],
+        "label": null,
+        "explanation_order": 6,
+        "trigger_keyword": "edge"
+      },
+      {
+        "connector_id": "edge_C_D",
+        "from_region_id": "node_C",
+        "to_region_id": "node_D",
+        "type": "line",
+        "path": [
+          {
+            "x": 0.4,
+            "y": 0.45
+          },
+          {
+            "x": 0.25,
+            "y": 0.6
+          }
+        ],
+        "label": null,
+        "explanation_order": 7,
+        "trigger_keyword": "edge"
+      }
+    ],
+    "flow_arrows": [],
+    "key_insight": "This graph shows the connections between nodes A, B, C, and D.",
+    "components": [
+      {
+        "id": "node_A",
+        "label": "node_A",
+        "bbox": [
+          0.15,
+          0.2,
+          0.15,
+          0.15
+        ],
+        "description": "Node A",
+        "explanation_order": 1,
+        "trigger_keyword": "A",
+        "highlight_color": "blue"
+      },
+      {
+        "id": "node_B",
+        "label": "node_B",
+        "bbox": [
+          0.65,
+          0.2,
+          0.15,
+          0.15
+        ],
+        "description": "Node B",
+        "explanation_order": 2,
+        "trigger_keyword": "B",
+        "highlight_color": "blue"
+      },
+      {
+        "id": "node_C",
+        "label": "node_C",
+        "bbox": [
+          0.4,
+          0.6,
+          0.15,
+          0.15
+        ],
+        "description": "Node C",
+        "explanation_order": 3,
+        "trigger_keyword": "C",
+        "highlight_color": "blue"
+      },
+      {
+        "id": "node_D",
+        "label": "node_D",
+        "bbox": [
+          0.15,
+          0.6,
+          0.15,
+          0.15
+        ],
+        "description": "Node D",
+        "explanation_order": 4,
+        "trigger_keyword": "D",
+        "highlight_color": "blue"
+      }
+    ]
+  },
+  "table_data": {
+    "headers": [],
+    "rows": [],
+    "highlight_column": null,
+    "key_row_index": 0
+  },
+  "equation": {
+    "latex": "",
+    "plain_text": "",
+    "variables": []
+  },
+  "teaching_sequence": [
+    {
+      "step": 1,
+      "action": "overview",
+      "target_component": null,
+      "teacher_says": "Let's look at this graph structure."
+    },
+    {
+      "step": 2,
+      "action": "zoom_to",
+      "target_component": "node_A",
+      "teacher_says": "This is node A."
+    }
+  ]
+}

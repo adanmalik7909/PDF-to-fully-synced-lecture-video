@@ -198,6 +198,28 @@ def analyze_diagram_with_vlm(image_path: str, groq_client) -> Dict:
     if not groq_client or not groq_client.initialized:
         return {}
 
+    # ─── Caching Layer (predictable per diagram file content) ───
+    import hashlib
+    import json
+    
+    try:
+        with open(image_path, "rb") as f:
+            file_hash = hashlib.md5(f.read()).hexdigest()
+    except Exception:
+        file_hash = hashlib.md5(image_path.encode()).hexdigest()
+
+    cache_dir = os.path.join("static", "diagrams")
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = os.path.join(cache_dir, f"regions_{file_hash}.json")
+
+    if os.path.exists(cache_path):
+        log_info(f"[VLM Diagram Cache] Loading regions from cache: {cache_path}")
+        try:
+            with open(cache_path, "r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception as e:
+            log_error(f"[VLM Diagram Cache] Failed to load cache: {e}")
+
     b64 = encode_image_base64(image_path)
     if not b64:
         return {}
@@ -207,9 +229,7 @@ def analyze_diagram_with_vlm(image_path: str, groq_client) -> Dict:
 You are an expert educational content analyst and spatial reasoning engine.
 Analyze this PDF page image and return ONLY valid JSON — no markdown, no explanation.
 
-For every diagram, table, chart, or visual element, identify each component
-with its EXACT normalized bounding box [x, y, width, height] where all values
-are between 0.0 and 1.0 (fraction of image dimensions, top-left origin).
+For every diagram, table, chart, or visual element, identify each key component/region.
 
 Return this exact schema:
 {
@@ -220,23 +240,33 @@ Return this exact schema:
   "visual": {
     "type": "flowchart|block_diagram|bar_chart|line_chart|pie_chart|table|photo|equation|network",
     "title": "diagram title or null",
-    "overall_bbox": [0.0, 0.0, 1.0, 1.0],
+    "overall_bbox": {"x": 0.0, "y": 0.0, "width": 1.0, "height": 1.0},
     "explanation_strategy": "left-to-right|top-to-bottom|center-out|sequential",
-    "components": [
+    "regions": [
       {
-        "id": "comp_1",
-        "label": "Input Layer",
-        "bbox": [0.05, 0.10, 0.20, 0.15],
-        "center": [0.15, 0.175],
+        "region_id": "input_node",
+        "bbox": {"x": 0.05, "y": 0.10, "width": 0.20, "height": 0.15},
+        "role": "input|process|decision|output|connector|other",
         "description": "receives raw input data from environment",
-        "connects_to": ["comp_2"],
         "explanation_order": 1,
         "trigger_keyword": "input",
         "highlight_color": "blue"
       }
     ],
+    "connectors": [
+      {
+        "connector_id": "arrow_input_to_step1",
+        "from_region_id": "input_node",
+        "to_region_id": "step1",
+        "type": "arrow|line|dashed|curve",
+        "path": [{"x": 0.25, "y": 0.26}, {"x": 0.3, "y": 0.26}],
+        "label": "data flows",
+        "explanation_order": 1,
+        "trigger_keyword": "flows"
+      }
+    ],
     "flow_arrows": [
-      {"from": "comp_1", "to": "comp_2", "label": "data flows"}
+      {"from": "input_node", "to": "step1", "label": "data flows"}
     ],
     "key_insight": "one sentence a teacher would say about this diagram"
   },
@@ -261,24 +291,17 @@ Return this exact schema:
     {
       "step": 2,
       "action": "zoom_to",
-      "target_component": "comp_1",
+      "target_component": "input_node",
       "teacher_says": "Starting with the input layer..."
-    },
-    {
-      "step": 3,
-      "action": "draw_arrow",
-      "from_component": "comp_1",
-      "to_component": "comp_2",
-      "teacher_says": "Data flows from input to hidden layer..."
     }
   ]
 }
 
 CRITICAL RULES:
-- bbox values MUST be normalized 0.0-1.0 fractions of image size
+- bbox x, y, width, and height values MUST be normalized 0.0-1.0 fractions of image size
+- connectors path list points MUST be normalized 0.0-1.0 fractions of image size
 - explanation_order follows the logical teaching sequence, not visual position
-- trigger_keyword is the EXACT word from the narration that should activate this component
-- teaching_sequence defines the step-by-step visual explanation order
+- trigger_keyword is the EXACT word from the narration that should activate this component/connector
 - If no visual element exists, set has_visual to false and skip visual field
 """
 
@@ -293,7 +316,7 @@ CRITICAL RULES:
                             "type": "image_url",
                             "image_url": {
                                 "url": f"data:image/png;base64,{b64}"
-                            }
+                             }
                         }
                     ]
                 }
@@ -308,8 +331,62 @@ CRITICAL RULES:
             if raw.startswith("json"):
                 raw = raw[4:]
 
-        import json
         result = json.loads(raw.strip())
+        
+        # Backward Compatibility Layer: map regions -> components
+        if "visual" in result and isinstance(result["visual"], dict):
+            vis = result["visual"]
+            regions = vis.get("regions", [])
+            if regions:
+                components = []
+                for r in regions:
+                    bbox_obj = r.get("bbox", {})
+                    # Convert object bbox to array bbox [x, y, width, height]
+                    bbox_arr = [
+                        bbox_obj.get("x", 0.0),
+                        bbox_obj.get("y", 0.0),
+                        bbox_obj.get("width", 0.2),
+                        bbox_obj.get("height", 0.2)
+                    ]
+                    components.append({
+                        "id": r.get("region_id", "comp_1"),
+                        "label": r.get("region_id", "Component"),
+                        "bbox": bbox_arr,
+                        "description": r.get("description", ""),
+                        "explanation_order": r.get("explanation_order", 1),
+                        "trigger_keyword": r.get("trigger_keyword", ""),
+                        "highlight_color": r.get("highlight_color", "blue")
+                    })
+                vis["components"] = components
+
+            # Map legacy flow_arrows to connectors if connectors is empty
+            connectors = vis.get("connectors", [])
+            flow_arrows = vis.get("flow_arrows", [])
+            if not connectors and flow_arrows:
+                connectors = []
+                for i, arrow in enumerate(flow_arrows):
+                    from_id = arrow.get("from", "")
+                    to_id = arrow.get("to", "")
+                    connectors.append({
+                        "connector_id": f"arrow_{from_id}_to_{to_id}",
+                        "from_region_id": from_id,
+                        "to_region_id": to_id,
+                        "type": "arrow",
+                        "path": [],
+                        "label": arrow.get("label", ""),
+                        "explanation_order": i + 1,
+                        "trigger_keyword": arrow.get("label", "").split()[0] if arrow.get("label") else ""
+                    })
+                vis["connectors"] = connectors
+
+        # Save to Cache
+        try:
+            with open(cache_path, "w", encoding="utf-8") as f:
+                json.dump(result, f, indent=2, ensure_ascii=False)
+            log_info(f"[VLM Diagram Cache] Saved regions to cache: {cache_path}")
+        except Exception as cache_err:
+            log_error(f"[VLM Diagram Cache] Failed to save cache: {cache_err}")
+
         log_info(f"VLM diagram analysis successful for {image_path}: found {len(result)} components.")
         return result
 

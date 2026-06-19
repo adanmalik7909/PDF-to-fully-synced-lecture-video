@@ -8,6 +8,7 @@ import re
 import os
 import json
 from typing import List, Dict, Optional
+from app.utils.logger import log_info, log_error
 
 
 class TimelineBuilder:
@@ -82,19 +83,239 @@ class TimelineBuilder:
                 if _brain_events:
                     events.extend(_brain_events)
             except Exception as _e:
-                print(f"[TimelineBuilder] AnimationBrain skipped: {_e}")
+                log_error(f"[TimelineBuilder] AnimationBrain skipped: {_e}")
         # ───────────────────────────────────────────────────────────
 
 
         # Sort by start_ms
         events.sort(key=lambda e: e["start_ms"])
 
+        segments = self._bullet_segments() + self._diagram_zoom_segments() + self._diagram_flow_segments()
+
         return {
             "scene_id":          self.scene.get("scene_id"),
             "total_duration_ms": self.total_ms,
             "audio_path":        self.scene.get("_audio_path", ""),
             "events":            events,
+            "segments":          segments
         }
+
+    def _bullet_segments(self) -> List[Dict]:
+        segments = []
+        bullets = self.scene.get("bullets", [])
+        scene_index = self.scene.get("scene_index", 1)
+        
+        bullet_starts = []
+        for i, bullet in enumerate(bullets):
+            if isinstance(bullet, str):
+                bullet = {"text": bullet, "trigger_word": "", "entrance": "slide_left"}
+            elif not isinstance(bullet, dict):
+                continue
+                
+            trigger_word = bullet.get("trigger_word", "")
+            found_ms = self._find_word_ms(trigger_word) if trigger_word else None
+
+            if found_ms is None:
+                fraction = (i + 1) / max(len(bullets) + 1, 2)
+                found_ms = self.total_ms * fraction
+
+            enter_ms  = max(0, found_ms - 100)
+            active_ms = enter_ms + 100
+            bullet_starts.append((i, active_ms, bullet))
+
+        for i, (idx, active_ms, bullet) in enumerate(bullet_starts):
+            bullet_id = bullet.get("bullet_id", f"bullet_{scene_index}_{idx}")
+            
+            if i < len(bullet_starts) - 1:
+                end_ms = bullet_starts[i+1][1]
+            else:
+                end_ms = self.total_ms
+                
+            segments.append({
+                "id": f"seg_bullet_{scene_index}_{idx}",
+                "type": "bullet",
+                "bullet_id": bullet_id,
+                "start_ms": round(active_ms, 1),
+                "end_ms": round(end_ms, 1)
+            })
+        return segments
+
+    def _diagram_zoom_segments(self) -> List[Dict]:
+        """
+        Creates continuous diagram_zoom segments based on visual regions in diagram_data,
+        aligned with trigger keywords in narration audio.
+        """
+        from core.camera_utils import compute_camera_params
+        
+        segments = []
+        diagram_data = self.scene.get("diagram_data", {})
+        if not diagram_data:
+            return []
+            
+        regions = diagram_data.get("regions", []) or diagram_data.get("components", [])
+        if not regions:
+            return []
+            
+        # Classify regions and extract trigger keywords and orders
+        valid_regions = []
+        for i, r in enumerate(regions):
+            if not isinstance(r, dict):
+                continue
+            r_id = r.get("region_id") or r.get("id")
+            if not r_id:
+                continue
+                
+            trigger_keyword = r.get("trigger_keyword", "")
+            explanation_order = r.get("explanation_order", i + 1)
+            
+            # Find when trigger word is spoken in narration
+            found_ms = self._find_word_ms(trigger_keyword) if trigger_keyword else None
+            
+            # If not found, use proportional fallback
+            if found_ms is None:
+                fraction = (explanation_order) / max(len(regions) + 1, 2)
+                found_ms = self.total_ms * fraction
+                
+            enter_ms = max(0, found_ms - 200) # start slightly before spoken keyword
+            valid_regions.append((explanation_order, enter_ms, r_id, r))
+            
+        # Sort by start time (pedagogical order aligns chronological speech)
+        valid_regions.sort(key=lambda x: (x[1], x[0]))
+        
+        for i, (order, enter_ms, r_id, r) in enumerate(valid_regions):
+            # Compute end time as start of next region segment, or total duration at the end
+            if i < len(valid_regions) - 1:
+                end_ms = valid_regions[i+1][1]
+            else:
+                end_ms = self.total_ms
+                
+            bbox = r.get("bbox", {})
+            # If bbox is array [x,y,w,h], normalize it to a dict for compute_camera_params
+            if isinstance(bbox, list):
+                bbox_dict = {"x_pct": bbox[0], "y_pct": bbox[1], "w_pct": bbox[2], "h_pct": bbox[3]}
+            else:
+                bbox_dict = bbox
+                
+            # Compute precomputed camera coordinates using camera_utils.py
+            camera_payload = compute_camera_params(bbox_dict)
+            
+            segments.append({
+                "id": f"seg_diagram_zoom_{r_id}_{i+1}",
+                "type": "diagram_zoom",
+                "region_id": r_id,
+                "start_ms": round(enter_ms, 1),
+                "end_ms": round(end_ms, 1),
+                "payload": camera_payload
+            })
+            
+        return segments
+
+    def _diagram_flow_segments(self) -> List[Dict]:
+        """
+        Creates continuous diagram_flow segments for arrow/connector drawing animations,
+        aligned with trigger keywords in narration audio.
+        """
+        from core.camera_utils import compute_connector_pixel_path
+        
+        segments = []
+        diagram_data = self.scene.get("diagram_data", {})
+        if not diagram_data:
+            return []
+            
+        connectors = diagram_data.get("connectors", [])
+        if not connectors:
+            return []
+            
+        regions = diagram_data.get("regions", []) or diagram_data.get("components", [])
+        regions_map = {}
+        for r in regions:
+            if not isinstance(r, dict):
+                continue
+            r_id = r.get("region_id") or r.get("id")
+            if r_id:
+                regions_map[r_id] = r
+
+        valid_connectors = []
+        for i, c in enumerate(connectors):
+            if not isinstance(c, dict):
+                continue
+            c_id = c.get("connector_id") or c.get("id") or f"conn_{i+1}"
+            from_region_id = c.get("from_region_id") or c.get("from")
+            to_region_id = c.get("to_region_id") or c.get("to")
+            if not from_region_id or not to_region_id:
+                continue
+                
+            trigger_keyword = c.get("trigger_keyword", "")
+            explanation_order = c.get("explanation_order", i + 1)
+            
+            # Find when trigger word is spoken in narration
+            found_ms = self._find_word_ms(trigger_keyword) if trigger_keyword else None
+            
+            # If not found, use proportional fallback
+            if found_ms is None:
+                fraction = (explanation_order) / max(len(connectors) + 1, 2)
+                found_ms = self.total_ms * fraction
+                
+            enter_ms = max(0, found_ms - 200) # start slightly before spoken keyword
+            valid_connectors.append((explanation_order, enter_ms, c_id, from_region_id, to_region_id, c))
+            
+        # Sort by start time
+        valid_connectors.sort(key=lambda x: (x[1], x[0]))
+        
+        for i, (order, enter_ms, c_id, from_id, to_id, c) in enumerate(valid_connectors):
+            if i < len(valid_connectors) - 1:
+                end_ms = valid_connectors[i+1][1]
+            else:
+                end_ms = self.total_ms
+                
+            path = c.get("path", [])
+            # Fallback path if missing: connect the centers of from_region and to_region
+            if not path:
+                r_from = regions_map.get(from_id)
+                r_to = regions_map.get(to_id)
+                if r_from and r_to:
+                    def get_bbox_center(region):
+                        bbox = region.get("bbox", {})
+                        if isinstance(bbox, list) and len(bbox) >= 4:
+                            return bbox[0] + bbox[2]/2.0, bbox[1] + bbox[3]/2.0
+                        elif isinstance(bbox, dict):
+                            x = bbox.get("x", bbox.get("x_pct", 0.0))
+                            y = bbox.get("y", bbox.get("y_pct", 0.0))
+                            w = bbox.get("width", bbox.get("w_pct", 0.2))
+                            h = bbox.get("height", bbox.get("h_pct", 0.2))
+                            return x + w/2.0, y + h/2.0
+                        else:
+                            x = region.get("x_pct", 0.0)
+                            y = region.get("y_pct", 0.0)
+                            w = region.get("w_pct", 0.2)
+                            h = region.get("h_pct", 0.2)
+                            return x + w/2.0, y + h/2.0
+                            
+                    cx1, cy1 = get_bbox_center(r_from)
+                    cx2, cy2 = get_bbox_center(r_to)
+                    path = [{"x": cx1, "y": cy1}, {"x": cx2, "y": cy2}]
+            
+            pixel_path = compute_connector_pixel_path(path)
+            duration_sec = (end_ms - enter_ms) / 1000.0
+            
+            segments.append({
+                "id": f"seg_diagram_flow_{c_id}_{i+1}",
+                "type": "diagram_flow",
+                "connector_id": c_id,
+                "from_region_id": from_id,
+                "to_region_id": to_id,
+                "start_ms": round(enter_ms, 1),
+                "end_ms": round(end_ms, 1),
+                "payload": {
+                    "pixel_path": pixel_path,
+                    "duration_sec": round(duration_sec, 2),
+                    "connector_type": c.get("type", "arrow"),
+                    "label": c.get("label", ""),
+                    "color": c.get("highlight_color") or c.get("color") or "#00E5FF"
+                }
+            })
+            
+        return segments
 
     # ──────────────────────────────────────────────────────────────────────
     # Event builders
@@ -125,8 +346,9 @@ class TimelineBuilder:
     def _bullets(self) -> List[Dict]:
         events = []
         bullets = self.scene.get("bullets", [])
-        prev_enter_ms = None
-
+        scene_index = self.scene.get("scene_index", 1)
+        
+        bullet_starts = []
         for i, bullet in enumerate(bullets):
             # Handle legacy string array hallucinations from LLM
             if isinstance(bullet, str):
@@ -144,22 +366,38 @@ class TimelineBuilder:
 
             enter_ms  = max(0, found_ms - 100)
             active_ms = enter_ms + 100
-            done_ms   = None  # filled when next bullet enters
+            bullet_starts.append((i, enter_ms, active_ms, bullet))
 
-            # Mark previous bullet as done when this one enters
-            if prev_enter_ms is not None and i > 0:
-                events.append(self._ev(enter_ms, enter_ms + 200, "bullet_done",
-                                       {"index": i - 1}))
+        for i, (idx, enter_ms, active_ms, bullet) in enumerate(bullet_starts):
+            bullet_id = bullet.get("bullet_id", f"bullet_{scene_index}_{idx}")
+            
+            if i < len(bullet_starts) - 1:
+                end_ms = bullet_starts[i+1][2] # next bullet's active_ms
+            else:
+                end_ms = self.total_ms
 
+            # bullet_enter event
             events.append(self._ev(enter_ms, enter_ms + 600, "bullet_enter", {
-                "index":    i,
+                "index":    idx,
+                "bullet_id": bullet_id,
                 "entrance": bullet.get("entrance", "slide_left"),
                 "text":     bullet.get("text", "")
             }))
-            events.append(self._ev(active_ms, active_ms + 400, "bullet_active",
-                                   {"index": i}))
+            
+            # bullet_active event now has a continuous duration spanning the active range
+            events.append(self._ev(active_ms, end_ms, "bullet_active", {
+                "index":    idx,
+                "bullet_id": bullet_id,
+            }))
 
-            prev_enter_ms = enter_ms
+            # Mark previous bullet as done when this one enters (for backward compatibility)
+            if i > 0:
+                prev_idx = bullet_starts[i-1][0]
+                prev_id = bullet_starts[i-1][3].get("bullet_id", f"bullet_{scene_index}_{prev_idx}")
+                events.append(self._ev(enter_ms, enter_ms + 200, "bullet_done", {
+                    "index": prev_idx,
+                    "bullet_id": prev_id
+                }))
 
         return events
 
@@ -526,7 +764,8 @@ Diagram Elements:
         events = []
         hooks = self.scene.get("attention_hooks", [])
         if not isinstance(hooks, list):
-            return events
+            hooks = []
+            
         for hook in hooks:
             if not isinstance(hook, dict):
                 continue
@@ -537,6 +776,25 @@ Diagram Elements:
                 "text": hook.get("text", ""),
                 "position": hook.get("position", "top-right")
             }))
+            
+        # V14: Add marker-based attention hooks
+        for w in self.words:
+            if w.get("is_marker"):
+                mtype = w.get("marker_type")
+                if mtype in ("pause", "recap", "explanation", "comparison"):
+                    events.append(self._ev(
+                        start_ms=w["start_ms"],
+                        end_ms=w["end_ms"],
+                        event_type="pause_and_think",
+                        data={"duration_ms": w["duration_ms"], "marker_type": mtype}
+                    ))
+                elif mtype == "rhetorical_question":
+                    events.append(self._ev(
+                        start_ms=w["start_ms"],
+                        end_ms=w["end_ms"],
+                        event_type="rhetorical_question",
+                        data={"duration_ms": w["duration_ms"]}
+                    ))
         return events
 
     # ──────────────────────────────────────────────────────────────────────

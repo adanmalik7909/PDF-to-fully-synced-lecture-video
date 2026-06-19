@@ -73,12 +73,12 @@
     <div class="summary-recap">
         {% for bullet in scene.bullets %}
         {% if bullet is mapping %}
-        <div class="recap-item bullet" data-index="{{ loop.index0 }}">
+        <div class="recap-item bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
             <span class="recap-num">{{ "%02d"|format(loop.index) }}</span>
             <span class="recap-text inter">{{ bullet.text }}</span>
         </div>
         {% else %}
-        <div class="recap-item bullet" data-index="{{ loop.index0 }}">
+        <div class="recap-item bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
             <span class="recap-num">{{ "%02d"|format(loop.index) }}</span>
             <span class="recap-text inter">{{ bullet }}</span>
         </div>

@@ -1,0 +1,2976 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 37200.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2164.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Imagine",
+          "start_ms": 0.0,
+          "end_ms": 314.5
+        },
+        {
+          "word": "you're",
+          "start_ms": 370.0,
+          "end_ms": 684.5
+        },
+        {
+          "word": "designing",
+          "start_ms": 740.0,
+          "end_ms": 1054.5
+        },
+        {
+          "word": "a",
+          "start_ms": 1110.0,
+          "end_ms": 1424.5
+        },
+        {
+          "word": "network",
+          "start_ms": 1480.0,
+          "end_ms": 1794.5
+        },
+        {
+          "word": "of",
+          "start_ms": 1850.0,
+          "end_ms": 2164.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 314.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Imagine",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 4754.5,
+    "type": "sentence",
+    "text": "Imagine you're designing a network of roads connecting all cities in a country.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 314.5,
+    "type": "word",
+    "text": "Imagine",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "What is the most cost-effective way to connect all nodes in a network?",
+      "heading_right": "Minimum Spanning Tree Concept"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 370.0,
+    "end_ms": 684.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "you're",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 370.0,
+    "end_ms": 684.5,
+    "type": "word",
+    "text": "you're",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_enter_7",
+    "start_ms": 740.0,
+    "end_ms": 1340.0,
+    "type": "segment",
+    "text": "diagram_enter",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 740.0,
+    "end_ms": 1054.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "designing",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 740.0,
+    "end_ms": 1054.5,
+    "type": "word",
+    "text": "designing",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_zoom_in_8",
+    "start_ms": 940.0,
+    "end_ms": 2040.0,
+    "type": "segment",
+    "text": "diagram_zoom_in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 1110.0,
+    "end_ms": 1424.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1110.0,
+    "end_ms": 1424.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_dim_12",
+    "start_ms": 1480.0,
+    "end_ms": 1994.5,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_10",
+    "start_ms": 1480.0,
+    "end_ms": 1794.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "network",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_11",
+    "start_ms": 1480.0,
+    "end_ms": 1994.5,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "network",
+      "element_id": "zw_1"
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1480.0,
+    "end_ms": 1794.5,
+    "type": "word",
+    "text": "network",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_13",
+    "start_ms": 1850.0,
+    "end_ms": 2164.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 1850.0,
+    "end_ms": 2164.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_14",
+    "start_ms": 2220.0,
+    "end_ms": 4384.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "roads",
+          "start_ms": 2220.0,
+          "end_ms": 2534.5
+        },
+        {
+          "word": "connecting",
+          "start_ms": 2590.0,
+          "end_ms": 2904.5
+        },
+        {
+          "word": "all",
+          "start_ms": 2960.0,
+          "end_ms": 3274.5
+        },
+        {
+          "word": "cities",
+          "start_ms": 3330.0,
+          "end_ms": 3644.5
+        },
+        {
+          "word": "in",
+          "start_ms": 3700.0,
+          "end_ms": 4014.5
+        },
+        {
+          "word": "a",
+          "start_ms": 4070.0,
+          "end_ms": 4384.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_15",
+    "start_ms": 2220.0,
+    "end_ms": 2534.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "roads",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2220.0,
+    "end_ms": 2534.5,
+    "type": "word",
+    "text": "roads",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_16",
+    "start_ms": 2590.0,
+    "end_ms": 2904.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "connecting",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2590.0,
+    "end_ms": 2904.5,
+    "type": "word",
+    "text": "connecting",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_17",
+    "start_ms": 2960.0,
+    "end_ms": 3274.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "all",
+      "index": 2,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_8",
+    "start_ms": 2960.0,
+    "end_ms": 3274.5,
+    "type": "word",
+    "text": "all",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_18",
+    "start_ms": 3330.0,
+    "end_ms": 3644.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "cities",
+      "index": 3,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_9",
+    "start_ms": 3330.0,
+    "end_ms": 3644.5,
+    "type": "word",
+    "text": "cities",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_19",
+    "start_ms": 3700.0,
+    "end_ms": 4014.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in",
+      "index": 4,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_10",
+    "start_ms": 3700.0,
+    "end_ms": 4014.5,
+    "type": "word",
+    "text": "in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_20",
+    "start_ms": 4070.0,
+    "end_ms": 4384.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 5,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_11",
+    "start_ms": 4070.0,
+    "end_ms": 4384.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_21",
+    "start_ms": 4440.0,
+    "end_ms": 6604.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "country.",
+          "start_ms": 4440.0,
+          "end_ms": 4754.5
+        },
+        {
+          "word": "You",
+          "start_ms": 4810.0,
+          "end_ms": 5124.5
+        },
+        {
+          "word": "want",
+          "start_ms": 5180.0,
+          "end_ms": 5494.5
+        },
+        {
+          "word": "to",
+          "start_ms": 5550.0,
+          "end_ms": 5864.5
+        },
+        {
+          "word": "do",
+          "start_ms": 5920.0,
+          "end_ms": 6234.5
+        },
+        {
+          "word": "it",
+          "start_ms": 6290.0,
+          "end_ms": 6604.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_22",
+    "start_ms": 4440.0,
+    "end_ms": 4754.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "country.",
+      "index": 0,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_12",
+    "start_ms": 4440.0,
+    "end_ms": 4754.5,
+    "type": "word",
+    "text": "country.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_23",
+    "start_ms": 4810.0,
+    "end_ms": 5124.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "You",
+      "index": 1,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "sentence_1",
+    "start_ms": 4810.0,
+    "end_ms": 8824.5,
+    "type": "sentence",
+    "text": "You want to do it in the most cost-effective way possible.",
+    "payload": {}
+  },
+  {
+    "id": "word_13",
+    "start_ms": 4810.0,
+    "end_ms": 5124.5,
+    "type": "word",
+    "text": "You",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_24",
+    "start_ms": 5180.0,
+    "end_ms": 5494.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "want",
+      "index": 2,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_14",
+    "start_ms": 5180.0,
+    "end_ms": 5494.5,
+    "type": "word",
+    "text": "want",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_zoom_out_25",
+    "start_ms": 5440.0,
+    "end_ms": 6440.0,
+    "type": "segment",
+    "text": "diagram_zoom_out",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_26",
+    "start_ms": 5550.0,
+    "end_ms": 5864.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 3,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_15",
+    "start_ms": 5550.0,
+    "end_ms": 5864.5,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_27",
+    "start_ms": 5920.0,
+    "end_ms": 6234.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "do",
+      "index": 4,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_16",
+    "start_ms": 5920.0,
+    "end_ms": 6234.5,
+    "type": "word",
+    "text": "do",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_28",
+    "start_ms": 6290.0,
+    "end_ms": 6604.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 5,
+      "group_idx": 2
+    }
+  },
+  {
+    "id": "word_17",
+    "start_ms": 6290.0,
+    "end_ms": 6604.5,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_29",
+    "start_ms": 6660.0,
+    "end_ms": 8824.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "in",
+          "start_ms": 6660.0,
+          "end_ms": 6974.5
+        },
+        {
+          "word": "the",
+          "start_ms": 7030.0,
+          "end_ms": 7344.5
+        },
+        {
+          "word": "most",
+          "start_ms": 7400.0,
+          "end_ms": 7714.5
+        },
+        {
+          "word": "cost-effective",
+          "start_ms": 7770.0,
+          "end_ms": 8084.5
+        },
+        {
+          "word": "way",
+          "start_ms": 8140.0,
+          "end_ms": 8454.5
+        },
+        {
+          "word": "possible.",
+          "start_ms": 8510.0,
+          "end_ms": 8824.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_30",
+    "start_ms": 6660.0,
+    "end_ms": 6974.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in",
+      "index": 0,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_18",
+    "start_ms": 6660.0,
+    "end_ms": 6974.5,
+    "type": "word",
+    "text": "in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_31",
+    "start_ms": 7030.0,
+    "end_ms": 7344.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 1,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_19",
+    "start_ms": 7030.0,
+    "end_ms": 7344.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_32",
+    "start_ms": 7400.0,
+    "end_ms": 7714.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "most",
+      "index": 2,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_20",
+    "start_ms": 7400.0,
+    "end_ms": 7714.5,
+    "type": "word",
+    "text": "most",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_33",
+    "start_ms": 7770.0,
+    "end_ms": 8084.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "cost-effective",
+      "index": 3,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_21",
+    "start_ms": 7770.0,
+    "end_ms": 8084.5,
+    "type": "word",
+    "text": "cost-effective",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_34",
+    "start_ms": 8140.0,
+    "end_ms": 8454.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "way",
+      "index": 4,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_22",
+    "start_ms": 8140.0,
+    "end_ms": 8454.5,
+    "type": "word",
+    "text": "way",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_35",
+    "start_ms": 8510.0,
+    "end_ms": 8824.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "possible.",
+      "index": 5,
+      "group_idx": 3
+    }
+  },
+  {
+    "id": "word_23",
+    "start_ms": 8510.0,
+    "end_ms": 8824.5,
+    "type": "word",
+    "text": "possible.",
+    "payload": {}
+  },
+  {
+    "id": "segment_attention_hook_36",
+    "start_ms": 8680.0,
+    "end_ms": 12180.0,
+    "type": "segment",
+    "text": "attention_hook",
+    "payload": {
+      "hook_type": "callout_bubble",
+      "text": "This is a key concept in network design!",
+      "position": "top-right"
+    }
+  },
+  {
+    "id": "segment_subtitle_show_37",
+    "start_ms": 8880.0,
+    "end_ms": 11044.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "This",
+          "start_ms": 8880.0,
+          "end_ms": 9194.5
+        },
+        {
+          "word": "is",
+          "start_ms": 9250.0,
+          "end_ms": 9564.5
+        },
+        {
+          "word": "where",
+          "start_ms": 9620.0,
+          "end_ms": 9934.5
+        },
+        {
+          "word": "the",
+          "start_ms": 9990.0,
+          "end_ms": 10304.5
+        },
+        {
+          "word": "concept",
+          "start_ms": 10360.0,
+          "end_ms": 10674.5
+        },
+        {
+          "word": "of",
+          "start_ms": 10730.0,
+          "end_ms": 11044.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_38",
+    "start_ms": 8880.0,
+    "end_ms": 9194.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "This",
+      "index": 0,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "sentence_2",
+    "start_ms": 8880.0,
+    "end_ms": 13264.5,
+    "type": "sentence",
+    "text": "This is where the concept of a minimum spanning tree comes in.",
+    "payload": {}
+  },
+  {
+    "id": "word_24",
+    "start_ms": 8880.0,
+    "end_ms": 9194.5,
+    "type": "word",
+    "text": "This",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_39",
+    "start_ms": 9250.0,
+    "end_ms": 9564.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 1,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_25",
+    "start_ms": 9250.0,
+    "end_ms": 9564.5,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_5_0",
+    "start_ms": 9300.0,
+    "end_ms": 18600.0,
+    "type": "bullet",
+    "text": "bullet_5_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_40",
+    "start_ms": 9620.0,
+    "end_ms": 9934.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "where",
+      "index": 2,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_26",
+    "start_ms": 9620.0,
+    "end_ms": 9934.5,
+    "type": "word",
+    "text": "where",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_41",
+    "start_ms": 9990.0,
+    "end_ms": 10304.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 3,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_27",
+    "start_ms": 9990.0,
+    "end_ms": 10304.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_42",
+    "start_ms": 10360.0,
+    "end_ms": 10674.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "concept",
+      "index": 4,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_28",
+    "start_ms": 10360.0,
+    "end_ms": 10674.5,
+    "type": "word",
+    "text": "concept",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_43",
+    "start_ms": 10730.0,
+    "end_ms": 11044.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 5,
+      "group_idx": 4
+    }
+  },
+  {
+    "id": "word_29",
+    "start_ms": 10730.0,
+    "end_ms": 11044.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_44",
+    "start_ms": 11100.0,
+    "end_ms": 13264.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "a",
+          "start_ms": 11100.0,
+          "end_ms": 11414.5
+        },
+        {
+          "word": "minimum",
+          "start_ms": 11470.0,
+          "end_ms": 11784.5
+        },
+        {
+          "word": "spanning",
+          "start_ms": 11840.0,
+          "end_ms": 12154.5
+        },
+        {
+          "word": "tree",
+          "start_ms": 12210.0,
+          "end_ms": 12524.5
+        },
+        {
+          "word": "comes",
+          "start_ms": 12580.0,
+          "end_ms": 12894.5
+        },
+        {
+          "word": "in.",
+          "start_ms": 12950.0,
+          "end_ms": 13264.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_45",
+    "start_ms": 11100.0,
+    "end_ms": 11414.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 0,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_30",
+    "start_ms": 11100.0,
+    "end_ms": 11414.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_enter_46",
+    "start_ms": 11270.0,
+    "end_ms": 11870.0,
+    "type": "segment",
+    "text": "bullet_enter",
+    "payload": {
+      "index": 0,
+      "bullet_id": "bullet_5_0",
+      "entrance": "slide_left",
+      "text": "Minimum spanning tree has the minimum sum of edge weights"
+    }
+  },
+  {
+    "id": "segment_heading_action_49",
+    "start_ms": 11470.0,
+    "end_ms": 12970.0,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_zoom",
+      "target": "heading_right",
+      "zoom_level": 1.12
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_50",
+    "start_ms": 11470.0,
+    "end_ms": 11984.5,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_47",
+    "start_ms": 11470.0,
+    "end_ms": 11784.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minimum",
+      "index": 1,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_48",
+    "start_ms": 11470.0,
+    "end_ms": 11984.5,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "minimum",
+      "element_id": "zw_0"
+    }
+  },
+  {
+    "id": "word_31",
+    "start_ms": 11470.0,
+    "end_ms": 11784.5,
+    "type": "word",
+    "text": "minimum",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_51",
+    "start_ms": 11840.0,
+    "end_ms": 12154.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "spanning",
+      "index": 2,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_32",
+    "start_ms": 11840.0,
+    "end_ms": 12154.5,
+    "type": "word",
+    "text": "spanning",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_52",
+    "start_ms": 12210.0,
+    "end_ms": 12524.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "tree",
+      "index": 3,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_33",
+    "start_ms": 12210.0,
+    "end_ms": 12524.5,
+    "type": "word",
+    "text": "tree",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_53",
+    "start_ms": 12580.0,
+    "end_ms": 12894.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "comes",
+      "index": 4,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_34",
+    "start_ms": 12580.0,
+    "end_ms": 12894.5,
+    "type": "word",
+    "text": "comes",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_54",
+    "start_ms": 12950.0,
+    "end_ms": 13264.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in.",
+      "index": 5,
+      "group_idx": 5
+    }
+  },
+  {
+    "id": "word_35",
+    "start_ms": 12950.0,
+    "end_ms": 13264.5,
+    "type": "word",
+    "text": "in.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_55",
+    "start_ms": 13320.0,
+    "end_ms": 15484.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "It's",
+          "start_ms": 13320.0,
+          "end_ms": 13634.5
+        },
+        {
+          "word": "a",
+          "start_ms": 13690.0,
+          "end_ms": 14004.5
+        },
+        {
+          "word": "spanning",
+          "start_ms": 14060.0,
+          "end_ms": 14374.5
+        },
+        {
+          "word": "tree",
+          "start_ms": 14430.0,
+          "end_ms": 14744.5
+        },
+        {
+          "word": "where",
+          "start_ms": 14800.0,
+          "end_ms": 15114.5
+        },
+        {
+          "word": "the",
+          "start_ms": 15170.0,
+          "end_ms": 15484.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_56",
+    "start_ms": 13320.0,
+    "end_ms": 13634.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "It's",
+      "index": 0,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "sentence_3",
+    "start_ms": 13320.0,
+    "end_ms": 19924.5,
+    "type": "sentence",
+    "text": "It's a spanning tree where the sum of the weight of the edges is as minimum as possible.",
+    "payload": {}
+  },
+  {
+    "id": "word_36",
+    "start_ms": 13320.0,
+    "end_ms": 13634.5,
+    "type": "word",
+    "text": "It's",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_57",
+    "start_ms": 13690.0,
+    "end_ms": 14004.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 1,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_37",
+    "start_ms": 13690.0,
+    "end_ms": 14004.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_58",
+    "start_ms": 14060.0,
+    "end_ms": 14374.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "spanning",
+      "index": 2,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_38",
+    "start_ms": 14060.0,
+    "end_ms": 14374.5,
+    "type": "word",
+    "text": "spanning",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_59",
+    "start_ms": 14430.0,
+    "end_ms": 14744.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "tree",
+      "index": 3,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_39",
+    "start_ms": 14430.0,
+    "end_ms": 14744.5,
+    "type": "word",
+    "text": "tree",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_60",
+    "start_ms": 14800.0,
+    "end_ms": 15114.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "where",
+      "index": 4,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_40",
+    "start_ms": 14800.0,
+    "end_ms": 15114.5,
+    "type": "word",
+    "text": "where",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_61",
+    "start_ms": 15170.0,
+    "end_ms": 15484.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 5,
+      "group_idx": 6
+    }
+  },
+  {
+    "id": "word_41",
+    "start_ms": 15170.0,
+    "end_ms": 15484.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_62",
+    "start_ms": 15540.0,
+    "end_ms": 17704.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "sum",
+          "start_ms": 15540.0,
+          "end_ms": 15854.5
+        },
+        {
+          "word": "of",
+          "start_ms": 15910.0,
+          "end_ms": 16224.5
+        },
+        {
+          "word": "the",
+          "start_ms": 16280.0,
+          "end_ms": 16594.5
+        },
+        {
+          "word": "weight",
+          "start_ms": 16650.0,
+          "end_ms": 16964.5
+        },
+        {
+          "word": "of",
+          "start_ms": 17020.0,
+          "end_ms": 17334.5
+        },
+        {
+          "word": "the",
+          "start_ms": 17390.0,
+          "end_ms": 17704.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_63",
+    "start_ms": 15540.0,
+    "end_ms": 15854.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "sum",
+      "index": 0,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_42",
+    "start_ms": 15540.0,
+    "end_ms": 15854.5,
+    "type": "word",
+    "text": "sum",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_64",
+    "start_ms": 15910.0,
+    "end_ms": 16224.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 1,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_43",
+    "start_ms": 15910.0,
+    "end_ms": 16224.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_65",
+    "start_ms": 16280.0,
+    "end_ms": 16594.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 2,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_44",
+    "start_ms": 16280.0,
+    "end_ms": 16594.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_66",
+    "start_ms": 16650.0,
+    "end_ms": 16964.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "weight",
+      "index": 3,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_45",
+    "start_ms": 16650.0,
+    "end_ms": 16964.5,
+    "type": "word",
+    "text": "weight",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_67",
+    "start_ms": 17020.0,
+    "end_ms": 17334.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 4,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_46",
+    "start_ms": 17020.0,
+    "end_ms": 17334.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_68",
+    "start_ms": 17390.0,
+    "end_ms": 17704.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 5,
+      "group_idx": 7
+    }
+  },
+  {
+    "id": "word_47",
+    "start_ms": 17390.0,
+    "end_ms": 17704.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_69",
+    "start_ms": 17760.0,
+    "end_ms": 19924.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "edges",
+          "start_ms": 17760.0,
+          "end_ms": 18074.5
+        },
+        {
+          "word": "is",
+          "start_ms": 18130.0,
+          "end_ms": 18444.5
+        },
+        {
+          "word": "as",
+          "start_ms": 18500.0,
+          "end_ms": 18814.5
+        },
+        {
+          "word": "minimum",
+          "start_ms": 18870.0,
+          "end_ms": 19184.5
+        },
+        {
+          "word": "as",
+          "start_ms": 19240.0,
+          "end_ms": 19554.5
+        },
+        {
+          "word": "possible.",
+          "start_ms": 19610.0,
+          "end_ms": 19924.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_70",
+    "start_ms": 17760.0,
+    "end_ms": 18074.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "edges",
+      "index": 0,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_48",
+    "start_ms": 17760.0,
+    "end_ms": 18074.5,
+    "type": "word",
+    "text": "edges",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_71",
+    "start_ms": 18130.0,
+    "end_ms": 18444.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 1,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_49",
+    "start_ms": 18130.0,
+    "end_ms": 18444.5,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_done_72",
+    "start_ms": 18500.0,
+    "end_ms": 18700.0,
+    "type": "segment",
+    "text": "bullet_done",
+    "payload": {
+      "index": 0,
+      "bullet_id": "bullet_5_0"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_73",
+    "start_ms": 18500.0,
+    "end_ms": 18814.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "as",
+      "index": 2,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_50",
+    "start_ms": 18500.0,
+    "end_ms": 18814.5,
+    "type": "word",
+    "text": "as",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_5_1",
+    "start_ms": 18600.0,
+    "end_ms": 27900.0,
+    "type": "bullet",
+    "text": "bullet_5_1",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_74",
+    "start_ms": 18870.0,
+    "end_ms": 19184.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minimum",
+      "index": 3,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_51",
+    "start_ms": 18870.0,
+    "end_ms": 19184.5,
+    "type": "word",
+    "text": "minimum",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_75",
+    "start_ms": 19240.0,
+    "end_ms": 19554.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "as",
+      "index": 4,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_52",
+    "start_ms": 19240.0,
+    "end_ms": 19554.5,
+    "type": "word",
+    "text": "as",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_76",
+    "start_ms": 19610.0,
+    "end_ms": 19924.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "possible.",
+      "index": 5,
+      "group_idx": 8
+    }
+  },
+  {
+    "id": "word_53",
+    "start_ms": 19610.0,
+    "end_ms": 19924.5,
+    "type": "word",
+    "text": "possible.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_77",
+    "start_ms": 19980.0,
+    "end_ms": 22144.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Think",
+          "start_ms": 19980.0,
+          "end_ms": 20294.5
+        },
+        {
+          "word": "of",
+          "start_ms": 20350.0,
+          "end_ms": 20664.5
+        },
+        {
+          "word": "it",
+          "start_ms": 20720.0,
+          "end_ms": 21034.5
+        },
+        {
+          "word": "like",
+          "start_ms": 21090.0,
+          "end_ms": 21404.5
+        },
+        {
+          "word": "a",
+          "start_ms": 21460.0,
+          "end_ms": 21774.5
+        },
+        {
+          "word": "recipe",
+          "start_ms": 21830.0,
+          "end_ms": 22144.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_78",
+    "start_ms": 19980.0,
+    "end_ms": 20294.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Think",
+      "index": 0,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "sentence_4",
+    "start_ms": 19980.0,
+    "end_ms": 24364.5,
+    "type": "sentence",
+    "text": "Think of it like a recipe for the most efficient network design.",
+    "payload": {}
+  },
+  {
+    "id": "word_54",
+    "start_ms": 19980.0,
+    "end_ms": 20294.5,
+    "type": "word",
+    "text": "Think",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_79",
+    "start_ms": 20350.0,
+    "end_ms": 20664.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "of",
+      "index": 1,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_55",
+    "start_ms": 20350.0,
+    "end_ms": 20664.5,
+    "type": "word",
+    "text": "of",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_80",
+    "start_ms": 20720.0,
+    "end_ms": 21034.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "it",
+      "index": 2,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_56",
+    "start_ms": 20720.0,
+    "end_ms": 21034.5,
+    "type": "word",
+    "text": "it",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_81",
+    "start_ms": 21090.0,
+    "end_ms": 21404.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "like",
+      "index": 3,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_57",
+    "start_ms": 21090.0,
+    "end_ms": 21404.5,
+    "type": "word",
+    "text": "like",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_82",
+    "start_ms": 21460.0,
+    "end_ms": 21774.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 4,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_58",
+    "start_ms": 21460.0,
+    "end_ms": 21774.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_83",
+    "start_ms": 21830.0,
+    "end_ms": 22144.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "recipe",
+      "index": 5,
+      "group_idx": 9
+    }
+  },
+  {
+    "id": "word_59",
+    "start_ms": 21830.0,
+    "end_ms": 22144.5,
+    "type": "word",
+    "text": "recipe",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_84",
+    "start_ms": 22200.0,
+    "end_ms": 24364.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "for",
+          "start_ms": 22200.0,
+          "end_ms": 22514.5
+        },
+        {
+          "word": "the",
+          "start_ms": 22570.0,
+          "end_ms": 22884.5
+        },
+        {
+          "word": "most",
+          "start_ms": 22940.0,
+          "end_ms": 23254.5
+        },
+        {
+          "word": "efficient",
+          "start_ms": 23310.0,
+          "end_ms": 23624.5
+        },
+        {
+          "word": "network",
+          "start_ms": 23680.0,
+          "end_ms": 23994.5
+        },
+        {
+          "word": "design.",
+          "start_ms": 24050.0,
+          "end_ms": 24364.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_85",
+    "start_ms": 22200.0,
+    "end_ms": 22514.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "for",
+      "index": 0,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_60",
+    "start_ms": 22200.0,
+    "end_ms": 22514.5,
+    "type": "word",
+    "text": "for",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_action_86",
+    "start_ms": 22320.0,
+    "end_ms": 23520.0,
+    "type": "segment",
+    "text": "heading_action",
+    "payload": {
+      "action_type": "heading_underline",
+      "target": "heading_right"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_87",
+    "start_ms": 22570.0,
+    "end_ms": 22884.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 1,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_61",
+    "start_ms": 22570.0,
+    "end_ms": 22884.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_88",
+    "start_ms": 22940.0,
+    "end_ms": 23254.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "most",
+      "index": 2,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_62",
+    "start_ms": 22940.0,
+    "end_ms": 23254.5,
+    "type": "word",
+    "text": "most",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_89",
+    "start_ms": 23310.0,
+    "end_ms": 23624.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "efficient",
+      "index": 3,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_63",
+    "start_ms": 23310.0,
+    "end_ms": 23624.5,
+    "type": "word",
+    "text": "efficient",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_90",
+    "start_ms": 23680.0,
+    "end_ms": 23994.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "network",
+      "index": 4,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_64",
+    "start_ms": 23680.0,
+    "end_ms": 23994.5,
+    "type": "word",
+    "text": "network",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_91",
+    "start_ms": 24050.0,
+    "end_ms": 24364.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "design.",
+      "index": 5,
+      "group_idx": 10
+    }
+  },
+  {
+    "id": "word_65",
+    "start_ms": 24050.0,
+    "end_ms": 24364.5,
+    "type": "word",
+    "text": "design.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_92",
+    "start_ms": 24420.0,
+    "end_ms": 26584.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "We",
+          "start_ms": 24420.0,
+          "end_ms": 24734.5
+        },
+        {
+          "word": "can",
+          "start_ms": 24790.0,
+          "end_ms": 25104.5
+        },
+        {
+          "word": "use",
+          "start_ms": 25160.0,
+          "end_ms": 25474.5
+        },
+        {
+          "word": "algorithms",
+          "start_ms": 25530.0,
+          "end_ms": 25844.5
+        },
+        {
+          "word": "like",
+          "start_ms": 25900.0,
+          "end_ms": 26214.5
+        },
+        {
+          "word": "Prim's",
+          "start_ms": 26270.0,
+          "end_ms": 26584.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_93",
+    "start_ms": 24420.0,
+    "end_ms": 24734.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "We",
+      "index": 0,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "sentence_5",
+    "start_ms": 24420.0,
+    "end_ms": 30654.5,
+    "type": "sentence",
+    "text": "We can use algorithms like Prim's or Kruskal's to find the minimum spanning tree from a graph.",
+    "payload": {}
+  },
+  {
+    "id": "word_66",
+    "start_ms": 24420.0,
+    "end_ms": 24734.5,
+    "type": "word",
+    "text": "We",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_94",
+    "start_ms": 24790.0,
+    "end_ms": 25104.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "can",
+      "index": 1,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_67",
+    "start_ms": 24790.0,
+    "end_ms": 25104.5,
+    "type": "word",
+    "text": "can",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_95",
+    "start_ms": 25160.0,
+    "end_ms": 25474.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "use",
+      "index": 2,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_68",
+    "start_ms": 25160.0,
+    "end_ms": 25474.5,
+    "type": "word",
+    "text": "use",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_dim_98",
+    "start_ms": 25530.0,
+    "end_ms": 26044.5,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_96",
+    "start_ms": 25530.0,
+    "end_ms": 25844.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "algorithms",
+      "index": 3,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_97",
+    "start_ms": 25530.0,
+    "end_ms": 26044.5,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "algorithms",
+      "element_id": "zw_2"
+    }
+  },
+  {
+    "id": "word_69",
+    "start_ms": 25530.0,
+    "end_ms": 25844.5,
+    "type": "word",
+    "text": "algorithms",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_99",
+    "start_ms": 25900.0,
+    "end_ms": 26214.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "like",
+      "index": 4,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_70",
+    "start_ms": 25900.0,
+    "end_ms": 26214.5,
+    "type": "word",
+    "text": "like",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_100",
+    "start_ms": 26270.0,
+    "end_ms": 26584.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Prim's",
+      "index": 5,
+      "group_idx": 11
+    }
+  },
+  {
+    "id": "word_71",
+    "start_ms": 26270.0,
+    "end_ms": 26584.5,
+    "type": "word",
+    "text": "Prim's",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_101",
+    "start_ms": 26640.0,
+    "end_ms": 28804.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "or",
+          "start_ms": 26640.0,
+          "end_ms": 26954.5
+        },
+        {
+          "word": "Kruskal's",
+          "start_ms": 27010.0,
+          "end_ms": 27324.5
+        },
+        {
+          "word": "to",
+          "start_ms": 27380.0,
+          "end_ms": 27694.5
+        },
+        {
+          "word": "find",
+          "start_ms": 27750.0,
+          "end_ms": 28064.5
+        },
+        {
+          "word": "the",
+          "start_ms": 28120.0,
+          "end_ms": 28434.5
+        },
+        {
+          "word": "minimum",
+          "start_ms": 28490.0,
+          "end_ms": 28804.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_102",
+    "start_ms": 26640.0,
+    "end_ms": 26954.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "or",
+      "index": 0,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_72",
+    "start_ms": 26640.0,
+    "end_ms": 26954.5,
+    "type": "word",
+    "text": "or",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_103",
+    "start_ms": 27010.0,
+    "end_ms": 27324.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Kruskal's",
+      "index": 1,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_73",
+    "start_ms": 27010.0,
+    "end_ms": 27324.5,
+    "type": "word",
+    "text": "Kruskal's",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_104",
+    "start_ms": 27380.0,
+    "end_ms": 27694.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "to",
+      "index": 2,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_74",
+    "start_ms": 27380.0,
+    "end_ms": 27694.5,
+    "type": "word",
+    "text": "to",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_105",
+    "start_ms": 27750.0,
+    "end_ms": 28064.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "find",
+      "index": 3,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_75",
+    "start_ms": 27750.0,
+    "end_ms": 28064.5,
+    "type": "word",
+    "text": "find",
+    "payload": {}
+  },
+  {
+    "id": "segment_bullet_done_106",
+    "start_ms": 27800.0,
+    "end_ms": 28000.0,
+    "type": "segment",
+    "text": "bullet_done",
+    "payload": {
+      "index": 1,
+      "bullet_id": "bullet_5_1"
+    }
+  },
+  {
+    "id": "seg_bullet_5_2",
+    "start_ms": 27900.0,
+    "end_ms": 37200.0,
+    "type": "bullet",
+    "text": "bullet_5_2",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_107",
+    "start_ms": 28120.0,
+    "end_ms": 28434.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "the",
+      "index": 4,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_76",
+    "start_ms": 28120.0,
+    "end_ms": 28434.5,
+    "type": "word",
+    "text": "the",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_108",
+    "start_ms": 28490.0,
+    "end_ms": 28804.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "minimum",
+      "index": 5,
+      "group_idx": 12
+    }
+  },
+  {
+    "id": "word_77",
+    "start_ms": 28490.0,
+    "end_ms": 28804.5,
+    "type": "word",
+    "text": "minimum",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_109",
+    "start_ms": 28860.0,
+    "end_ms": 31024.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "spanning",
+          "start_ms": 28860.0,
+          "end_ms": 29174.5
+        },
+        {
+          "word": "tree",
+          "start_ms": 29230.0,
+          "end_ms": 29544.5
+        },
+        {
+          "word": "from",
+          "start_ms": 29600.0,
+          "end_ms": 29914.5
+        },
+        {
+          "word": "a",
+          "start_ms": 29970.0,
+          "end_ms": 30284.5
+        },
+        {
+          "word": "graph.",
+          "start_ms": 30340.0,
+          "end_ms": 30654.5
+        },
+        {
+          "word": "This",
+          "start_ms": 30710.0,
+          "end_ms": 31024.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_110",
+    "start_ms": 28860.0,
+    "end_ms": 29174.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "spanning",
+      "index": 0,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_78",
+    "start_ms": 28860.0,
+    "end_ms": 29174.5,
+    "type": "word",
+    "text": "spanning",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_111",
+    "start_ms": 29230.0,
+    "end_ms": 29544.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "tree",
+      "index": 1,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_79",
+    "start_ms": 29230.0,
+    "end_ms": 29544.5,
+    "type": "word",
+    "text": "tree",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_112",
+    "start_ms": 29600.0,
+    "end_ms": 29914.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "from",
+      "index": 2,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_80",
+    "start_ms": 29600.0,
+    "end_ms": 29914.5,
+    "type": "word",
+    "text": "from",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_113",
+    "start_ms": 29760.0,
+    "end_ms": 37200.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": "A minimum spanning tree is the most cost-effective way to connect all nodes in a network."
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_114",
+    "start_ms": 29970.0,
+    "end_ms": 30284.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 3,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_81",
+    "start_ms": 29970.0,
+    "end_ms": 30284.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_115",
+    "start_ms": 30340.0,
+    "end_ms": 30654.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "graph.",
+      "index": 4,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "word_82",
+    "start_ms": 30340.0,
+    "end_ms": 30654.5,
+    "type": "word",
+    "text": "graph.",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_116",
+    "start_ms": 30710.0,
+    "end_ms": 31024.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "This",
+      "index": 5,
+      "group_idx": 13
+    }
+  },
+  {
+    "id": "sentence_6",
+    "start_ms": 30710.0,
+    "end_ms": 36944.5,
+    "type": "sentence",
+    "text": "This concept has many real-world applications, such as designing telecommunication networks or finding paths in a map.",
+    "payload": {}
+  },
+  {
+    "id": "word_83",
+    "start_ms": 30710.0,
+    "end_ms": 31024.5,
+    "type": "word",
+    "text": "This",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_117",
+    "start_ms": 31080.0,
+    "end_ms": 33244.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "concept",
+          "start_ms": 31080.0,
+          "end_ms": 31394.5
+        },
+        {
+          "word": "has",
+          "start_ms": 31450.0,
+          "end_ms": 31764.5
+        },
+        {
+          "word": "many",
+          "start_ms": 31820.0,
+          "end_ms": 32134.5
+        },
+        {
+          "word": "real-world",
+          "start_ms": 32190.0,
+          "end_ms": 32504.5
+        },
+        {
+          "word": "applications,",
+          "start_ms": 32560.0,
+          "end_ms": 32874.5
+        },
+        {
+          "word": "such",
+          "start_ms": 32930.0,
+          "end_ms": 33244.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_118",
+    "start_ms": 31080.0,
+    "end_ms": 31394.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "concept",
+      "index": 0,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_84",
+    "start_ms": 31080.0,
+    "end_ms": 31394.5,
+    "type": "word",
+    "text": "concept",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_119",
+    "start_ms": 31450.0,
+    "end_ms": 31764.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "has",
+      "index": 1,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_85",
+    "start_ms": 31450.0,
+    "end_ms": 31764.5,
+    "type": "word",
+    "text": "has",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_120",
+    "start_ms": 31820.0,
+    "end_ms": 32134.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "many",
+      "index": 2,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_86",
+    "start_ms": 31820.0,
+    "end_ms": 32134.5,
+    "type": "word",
+    "text": "many",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_121",
+    "start_ms": 32190.0,
+    "end_ms": 32504.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "real-world",
+      "index": 3,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_87",
+    "start_ms": 32190.0,
+    "end_ms": 32504.5,
+    "type": "word",
+    "text": "real-world",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_122",
+    "start_ms": 32560.0,
+    "end_ms": 32874.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "applications,",
+      "index": 4,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_88",
+    "start_ms": 32560.0,
+    "end_ms": 32874.5,
+    "type": "word",
+    "text": "applications,",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_123",
+    "start_ms": 32930.0,
+    "end_ms": 33244.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "such",
+      "index": 5,
+      "group_idx": 14
+    }
+  },
+  {
+    "id": "word_89",
+    "start_ms": 32930.0,
+    "end_ms": 33244.5,
+    "type": "word",
+    "text": "such",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_124",
+    "start_ms": 33300.0,
+    "end_ms": 35464.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "as",
+          "start_ms": 33300.0,
+          "end_ms": 33614.5
+        },
+        {
+          "word": "designing",
+          "start_ms": 33670.0,
+          "end_ms": 33984.5
+        },
+        {
+          "word": "telecommunication",
+          "start_ms": 34040.0,
+          "end_ms": 34354.5
+        },
+        {
+          "word": "networks",
+          "start_ms": 34410.0,
+          "end_ms": 34724.5
+        },
+        {
+          "word": "or",
+          "start_ms": 34780.0,
+          "end_ms": 35094.5
+        },
+        {
+          "word": "finding",
+          "start_ms": 35150.0,
+          "end_ms": 35464.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_125",
+    "start_ms": 33300.0,
+    "end_ms": 33614.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "as",
+      "index": 0,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_90",
+    "start_ms": 33300.0,
+    "end_ms": 33614.5,
+    "type": "word",
+    "text": "as",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_126",
+    "start_ms": 33670.0,
+    "end_ms": 33984.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "designing",
+      "index": 1,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_91",
+    "start_ms": 33670.0,
+    "end_ms": 33984.5,
+    "type": "word",
+    "text": "designing",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_127",
+    "start_ms": 34040.0,
+    "end_ms": 34354.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "telecommunication",
+      "index": 2,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_92",
+    "start_ms": 34040.0,
+    "end_ms": 34354.5,
+    "type": "word",
+    "text": "telecommunication",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_128",
+    "start_ms": 34410.0,
+    "end_ms": 34724.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "networks",
+      "index": 3,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_93",
+    "start_ms": 34410.0,
+    "end_ms": 34724.5,
+    "type": "word",
+    "text": "networks",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_129",
+    "start_ms": 34780.0,
+    "end_ms": 35094.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "or",
+      "index": 4,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_94",
+    "start_ms": 34780.0,
+    "end_ms": 35094.5,
+    "type": "word",
+    "text": "or",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_130",
+    "start_ms": 35150.0,
+    "end_ms": 35464.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "finding",
+      "index": 5,
+      "group_idx": 15
+    }
+  },
+  {
+    "id": "word_95",
+    "start_ms": 35150.0,
+    "end_ms": 35464.5,
+    "type": "word",
+    "text": "finding",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_131",
+    "start_ms": 35520.0,
+    "end_ms": 36944.5,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "paths",
+          "start_ms": 35520.0,
+          "end_ms": 35834.5
+        },
+        {
+          "word": "in",
+          "start_ms": 35890.0,
+          "end_ms": 36204.5
+        },
+        {
+          "word": "a",
+          "start_ms": 36260.0,
+          "end_ms": 36574.5
+        },
+        {
+          "word": "map.",
+          "start_ms": 36630.0,
+          "end_ms": 36944.5
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_132",
+    "start_ms": 35520.0,
+    "end_ms": 35834.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "paths",
+      "index": 0,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_96",
+    "start_ms": 35520.0,
+    "end_ms": 35834.5,
+    "type": "word",
+    "text": "paths",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_133",
+    "start_ms": 35890.0,
+    "end_ms": 36204.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "in",
+      "index": 1,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_97",
+    "start_ms": 35890.0,
+    "end_ms": 36204.5,
+    "type": "word",
+    "text": "in",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_134",
+    "start_ms": 36260.0,
+    "end_ms": 36574.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 2,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_98",
+    "start_ms": 36260.0,
+    "end_ms": 36574.5,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_135",
+    "start_ms": 36630.0,
+    "end_ms": 36944.5,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "map.",
+      "index": 3,
+      "group_idx": 16
+    }
+  },
+  {
+    "id": "word_99",
+    "start_ms": 36630.0,
+    "end_ms": 36944.5,
+    "type": "word",
+    "text": "map.",
+    "payload": {}
+  },
+  {
+    "id": "segment_scene_end_136",
+    "start_ms": 36700.0,
+    "end_ms": 37200.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  }
+]

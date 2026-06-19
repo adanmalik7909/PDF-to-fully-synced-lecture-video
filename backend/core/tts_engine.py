@@ -51,6 +51,7 @@ def _get_audio_duration_ms(audio_path: str) -> float:
         )
         return float(res.stdout.strip()) * 1000
     except Exception:
+        log_error(f"[TTS V10] WARNING: ffprobe failed for {audio_path}. Using 10s fallback duration.")
         return 10000.0  # 10 second fallback
 
 
@@ -85,6 +86,92 @@ def _estimate_word_timestamps(text: str, total_duration_ms: float) -> List[Dict]
     return timestamps
 
 
+def parse_narration_markers(text: str) -> List[Dict]:
+    """
+    Parse markers like [pause: 1.5] or [rhetorical_question] from narration.
+    Returns a list of segments:
+      - {"type": "text", "content": "..."}
+      - {"type": "pause", "duration": float, "marker_type": "pause|rhetorical_question|etc"}
+    """
+    pattern = r'\[(pause|explanation|comparison|recap|rhetorical_question)(?:\:\s*([0-9.]+))?\]'
+    segments = []
+    last_idx = 0
+    for match in re.finditer(pattern, text):
+        start, end = match.span()
+        preceding_text = text[last_idx:start].strip()
+        if preceding_text:
+            segments.append({"type": "text", "content": preceding_text})
+        marker_type = match.group(1)
+        duration_str = match.group(2)
+        if duration_str:
+            duration = float(duration_str)
+        elif marker_type == "pause":
+            duration = 1.2
+        elif marker_type == "rhetorical_question":
+            duration = 1.0
+        else:
+            duration = 0.5
+        segments.append({
+            "type": "pause",
+            "duration": duration,
+            "marker_type": marker_type
+        })
+        last_idx = end
+    remaining_text = text[last_idx:].strip()
+    if remaining_text:
+        segments.append({"type": "text", "content": remaining_text})
+    return segments
+
+
+def generate_silence(duration_sec: float, out_path: str) -> bool:
+    """Generate a silent audio file matching typical edge-tts mono 24k output."""
+    cmd = [
+        "ffmpeg", "-y",
+        "-f", "lavfi",
+        "-i", "anullsrc=r=24000:cl=mono",
+        "-t", f"{duration_sec:.3f}",
+        "-c:a", "libmp3lame",
+        "-b:a", "128k",
+        out_path
+    ]
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        return res.returncode == 0
+    except Exception as e:
+        log_error(f"[TTS Silence] FFmpeg silence generation error: {e}")
+        return False
+
+
+def concat_audio_with_ffmpeg(audio_paths: List[str], output_path: str) -> bool:
+    """Concatenate multiple audio files into a single output using FFmpeg concat filter."""
+    if not audio_paths:
+        return False
+    if len(audio_paths) == 1:
+        import shutil
+        shutil.copy(audio_paths[0], output_path)
+        return True
+        
+    cmd = ["ffmpeg", "-y"]
+    for path in audio_paths:
+        cmd.extend(["-i", path])
+    
+    # Filter complex to concatenate only audio streams
+    filter_str = "".join([f"[{i}:a]" for i in range(len(audio_paths))]) + f"concat=n={len(audio_paths)}:v=0:a=1[aout]"
+    cmd.extend([
+        "-filter_complex", filter_str,
+        "-map", "[aout]",
+        "-c:a", "libmp3lame",
+        "-b:a", "128k",
+        output_path
+    ])
+    try:
+        res = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+        return res.returncode == 0
+    except Exception as e:
+        log_error(f"[TTS Concat] FFmpeg concatenation error: {e}")
+        return False
+
+
 async def synthesize_scene(
     text: str,
     scene_type: str,
@@ -94,12 +181,13 @@ async def synthesize_scene(
 ) -> Dict:
     """
     Synthesize one scene's narration via edge-tts.
+    Supports script markers for pauses and rhetorical questions by splitting,
+    synthesizing, inserting silences, and concatenating with FFmpeg.
     Returns: {audio_path, words, total_duration_ms, srt_path}
     """
     import edge_tts
 
     os.makedirs(output_dir, exist_ok=True)
-    mood       = SCENE_MOODS.get(scene_type, DEFAULT_MOOD)
     audio_path = os.path.join(output_dir, f"{scene_id}_audio.mp3")
     words_path = os.path.join(output_dir, f"{scene_id}_words.json")
     srt_path   = os.path.join(output_dir, f"{scene_id}.srt")
@@ -109,64 +197,116 @@ async def synthesize_scene(
         log_error(f"[TTS V10] Scene {scene_id} has empty narration.")
         return {}
 
-    communicate = edge_tts.Communicate(
-        clean_text,
-        voice=VOICE,
-        rate=GLOBAL_RATE,
-        pitch=GLOBAL_PITCH
-    )
-
+    segments = parse_narration_markers(clean_text)
+    segment_audios = []
     word_timestamps = []
-    audio_chunks = []
+    current_time_ms = 0.0
 
-    try:
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_chunks.append(chunk["data"])
-            elif chunk["type"] == "WordBoundary":
-                start_ms = _ms(chunk["offset"])
-                dur_ms   = _ms(chunk["duration"])
-                word_timestamps.append({
-                    "word":        chunk["text"],
-                    "start_ms":    start_ms,
-                    "end_ms":      round(start_ms + dur_ms, 1),
-                    "duration_ms": dur_ms,
-                    "start_sec":   round(start_ms / 1000, 4),
-                    "duration":    round(dur_ms / 1000, 4),
-                })
-    except Exception as e:
-        log_error(f"[TTS V10] edge-tts stream error for {scene_id}: {e}")
+    for seg_idx, seg in enumerate(segments):
+        seg_audio_path = os.path.join(output_dir, f"{scene_id}_seg_{seg_idx}.mp3")
+        
+        if seg["type"] == "text":
+            communicate = edge_tts.Communicate(
+                seg["content"],
+                voice=VOICE,
+                rate=GLOBAL_RATE,
+                pitch=GLOBAL_PITCH
+            )
+            
+            audio_chunks = []
+            seg_word_timestamps = []
+            
+            try:
+                async for chunk in communicate.stream():
+                    if chunk["type"] == "audio":
+                        audio_chunks.append(chunk["data"])
+                    elif chunk["type"] == "WordBoundary":
+                        start_ms = _ms(chunk["offset"])
+                        dur_ms   = _ms(chunk["duration"])
+                        seg_word_timestamps.append({
+                            "word":        chunk["text"],
+                            "start_ms":    start_ms,
+                            "end_ms":      round(start_ms + dur_ms, 1),
+                            "duration_ms": dur_ms,
+                        })
+            except Exception as e:
+                log_error(f"[TTS V10] edge-tts segment stream error: {e}")
+                continue
+                
+            if not audio_chunks:
+                continue
+                
+            with open(seg_audio_path, "wb") as f:
+                for chunk in audio_chunks:
+                    f.write(chunk)
+                    
+            duration_ms = _get_audio_duration_ms(seg_audio_path)
+            
+            if not seg_word_timestamps:
+                seg_word_timestamps = _estimate_word_timestamps(seg["content"], duration_ms)
+                
+            # Offset and accumulate timestamps
+            for wt in seg_word_timestamps:
+                wt["start_ms"] = round(wt["start_ms"] + current_time_ms, 1)
+                wt["end_ms"] = round(wt["end_ms"] + current_time_ms, 1)
+                wt["start_sec"] = round(wt["start_ms"] / 1000, 4)
+                wt["duration"] = round(wt["duration_ms"] / 1000, 4)
+                word_timestamps.append(wt)
+                
+            segment_audios.append(seg_audio_path)
+            current_time_ms += duration_ms
+            
+        elif seg["type"] == "pause":
+            duration_ms = seg["duration"] * 1000
+            generate_silence(seg["duration"], seg_audio_path)
+            segment_audios.append(seg_audio_path)
+            
+            # Insert a marker event into the word list
+            word_timestamps.append({
+                "word": f"[{seg['marker_type']}]",
+                "start_ms": round(current_time_ms, 1),
+                "end_ms": round(current_time_ms + duration_ms, 1),
+                "duration_ms": duration_ms,
+                "start_sec": round(current_time_ms / 1000, 4),
+                "duration": round(duration_ms / 1000, 4),
+                "is_marker": True,
+                "marker_type": seg["marker_type"]
+            })
+            current_time_ms += duration_ms
+
+    # Concat all segments
+    if not concat_audio_with_ffmpeg(segment_audios, audio_path):
+        log_error(f"[TTS V10] Failed to concatenate audio segments for {scene_id}")
         return {}
 
-    if not audio_chunks:
-        log_error(f"[TTS V10] No audio generated for {scene_id}")
-        return {}
+    # Cleanup segment audios
+    for p in segment_audios:
+        try:
+            if os.path.exists(p):
+                os.remove(p)
+        except Exception as e:
+            log_error(f"[TTS Cleanup] Failed to delete {p}: {e}")
 
-    # Write audio file
-    with open(audio_path, "wb") as f:
-        for chunk in audio_chunks:
-            f.write(chunk)
-
-    # Get total duration (always from ffprobe — most accurate)
+    # Re-verify total duration of the master concatenated file
     total_duration_ms = _get_audio_duration_ms(audio_path)
-
-    # ── WINDOWS FIX: if WordBoundary events missing, estimate from audio ──
-    if not word_timestamps:
-        log_info(f"[TTS V10] No WordBoundary events for {scene_id} — estimating from audio duration")
-        word_timestamps = _estimate_word_timestamps(clean_text, total_duration_ms)
+    if total_duration_ms <= 0:
+        log_error(f"[TTS V10] WARNING: Concatenated audio has 0 or negative duration for {scene_id}. Re-estimating.")
+        total_duration_ms = current_time_ms if current_time_ms > 0 else 10000.0
 
     # Save words JSON
     with open(words_path, "w", encoding="utf-8") as f:
         json.dump(word_timestamps, f, ensure_ascii=False, indent=2)
 
-    # Generate ASS only if we have word timestamps
+    # Generate ASS subtitles
     ass_path = srt_path.replace('.srt', '.ass')
-    if word_timestamps:
-        _write_ass(word_timestamps, ass_path, zoom_words)
+    # Filter out markers for subtitle display
+    sub_words = [w for w in word_timestamps if not w.get("is_marker")]
+    if sub_words:
+        _write_ass(sub_words, ass_path, zoom_words)
     else:
-        ass_path = None  # Signal to pipeline: no ASS available
+        ass_path = None
 
-    log_info(f"[TTS V10] Scene {scene_id}: {len(word_timestamps)} words, {total_duration_ms:.0f}ms")
+    log_info(f"[TTS V10] Scene {scene_id} completed: {len(word_timestamps)} word/markers, {total_duration_ms:.0f}ms")
 
     return {
         "scene_id":          scene_id,
@@ -174,7 +314,7 @@ async def synthesize_scene(
         "words":             word_timestamps,
         "words_path":        words_path,
         "total_duration_ms": total_duration_ms,
-        "srt_path":          ass_path,  # Kept as srt_path for backward compatibility in pipeline
+        "srt_path":          ass_path,
     }
 
 

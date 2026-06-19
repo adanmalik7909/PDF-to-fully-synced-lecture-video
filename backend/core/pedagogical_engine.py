@@ -238,7 +238,7 @@ IMPORTANT RULES:
 - Generate exactly 3-5 bullets. Each bullet must be 10-15 words (not short!).
 - heading_left MUST be 12-15 words — a full, compelling sentence or question. NOT short.
 - heading_right MUST be 4-8 words — the full academic concept name.
-- If diagrams exist, mention them in narration and set diagram_trigger_word to the spoken word that should display the diagram.
+- If diagrams exist, mention them in narration and set diagram_trigger_word to the spoken word that should display the diagram. Ensure the narration naturally includes the trigger keywords of visual diagram connectors (flows/transitions) in pedagogical order to drive process flow drawing/marching-ants animations.
 """
             # Inject spatial or data specific instructions
             spatial_desc = ""

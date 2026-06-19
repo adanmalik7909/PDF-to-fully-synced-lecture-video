@@ -345,7 +345,7 @@
     <div class="table-bullets-zone bullets-zone" id="bullets-zone">
         {% for bullet in scene.bullets %}
         {% if bullet is mapping %}
-        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
             <div class="bullet-num">{{ bullet.num or "%02d"|format(loop.index) }}</div>
             <div class="bullet-text inter">
                 {% set btext = bullet.text or '' %}
@@ -358,7 +358,7 @@
             </div>
         </div>
         {% else %}
-        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
             <div class="bullet-num">{{ "%02d"|format(loop.index) }}</div>
             <div class="bullet-text inter">{{ bullet }}</div>
         </div>

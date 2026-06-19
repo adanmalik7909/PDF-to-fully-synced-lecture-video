@@ -1,0 +1,443 @@
+[
+  {
+    "id": "seg_diagram_zoom_step1_1",
+    "start_ms": 0,
+    "end_ms": 2026.0,
+    "type": "diagram_zoom",
+    "text": "step1",
+    "payload": {
+      "scale": 2.53,
+      "x": 1216.0,
+      "y": 684.0,
+      "assumed_width": 1920.0,
+      "assumed_height": 1080.0
+    }
+  },
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 3168.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2170.3,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Hello",
+          "start_ms": 0.0,
+          "end_ms": 315.3
+        },
+        {
+          "word": "this",
+          "start_ms": 371.0,
+          "end_ms": 686.3
+        },
+        {
+          "word": "is",
+          "start_ms": 742.0,
+          "end_ms": 1057.3
+        },
+        {
+          "word": "a",
+          "start_ms": 1113.0,
+          "end_ms": 1428.3
+        },
+        {
+          "word": "high",
+          "start_ms": 1484.0,
+          "end_ms": 1799.3
+        },
+        {
+          "word": "fidelity",
+          "start_ms": 1855.0,
+          "end_ms": 2170.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 315.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Hello",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 2912.3,
+    "type": "sentence",
+    "text": "Hello this is a high fidelity memory test.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 315.3,
+    "type": "word",
+    "text": "Hello",
+    "payload": {}
+  },
+  {
+    "id": "seg_bullet_1_0",
+    "start_ms": 100,
+    "end_ms": 3168.0,
+    "type": "bullet",
+    "text": "bullet_1_0",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_cursor_move_4",
+    "start_ms": 157.65,
+    "end_ms": 757.65,
+    "type": "segment",
+    "text": "diagram_cursor_move",
+    "payload": {
+      "region": {
+        "x_pct": 0.15000000000000002,
+        "y_pct": 0.15000000000000002,
+        "w_pct": 0.1,
+        "h_pct": 0.1
+      },
+      "label": "First step",
+      "element_id": "step1"
+    }
+  },
+  {
+    "id": "segment_heading_focus_5",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "Stability Test",
+      "heading_right": "Awaited Render"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 371.0,
+    "end_ms": 686.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "this",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 371.0,
+    "end_ms": 686.3,
+    "type": "word",
+    "text": "this",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_7",
+    "start_ms": 742.0,
+    "end_ms": 1057.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 742.0,
+    "end_ms": 1057.3,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_enter_8",
+    "start_ms": 950.4,
+    "end_ms": 1550.4,
+    "type": "segment",
+    "text": "diagram_enter",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 1113.0,
+    "end_ms": 1428.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1113.0,
+    "end_ms": 1428.3,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_zoom_in_10",
+    "start_ms": 1150.4,
+    "end_ms": 2250.4,
+    "type": "segment",
+    "text": "diagram_zoom_in",
+    "payload": {}
+  },
+  {
+    "id": "seg_diagram_flow_arrow_step1_to_step2_1",
+    "start_ms": 1284.0,
+    "end_ms": 3168.0,
+    "type": "diagram_flow",
+    "text": "",
+    "payload": {
+      "pixel_path": [
+        {
+          "x": 480.0,
+          "y": 270.0
+        },
+        {
+          "x": 768.0,
+          "y": 270.0
+        },
+        {
+          "x": 768.0,
+          "y": 756.0
+        },
+        {
+          "x": 1344.0,
+          "y": 756.0
+        }
+      ],
+      "duration_sec": 1.88,
+      "connector_type": "dashed",
+      "label": "process transition",
+      "color": "#00E5FF"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_11",
+    "start_ms": 1484.0,
+    "end_ms": 1799.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "high",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1484.0,
+    "end_ms": 1799.3,
+    "type": "word",
+    "text": "high",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_cursor_move_14",
+    "start_ms": 1855,
+    "end_ms": 2455,
+    "type": "segment",
+    "text": "diagram_cursor_move",
+    "payload": {
+      "region": {
+        "x_pct": 0.5,
+        "y_pct": 0.425,
+        "w_pct": 0.1,
+        "h_pct": 0.1
+      },
+      "label": "process transition",
+      "element_id": "arrow_step1_to_step2"
+    }
+  },
+  {
+    "id": "segment_subtitle_dim_15",
+    "start_ms": 1855.0,
+    "end_ms": 2370.3,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_12",
+    "start_ms": 1855.0,
+    "end_ms": 2170.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "fidelity",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_13",
+    "start_ms": 1855.0,
+    "end_ms": 2370.3,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "fidelity",
+      "element_id": "zw_0"
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 1855.0,
+    "end_ms": 2170.3,
+    "type": "word",
+    "text": "fidelity",
+    "payload": {}
+  },
+  {
+    "id": "seg_diagram_zoom_step2_2",
+    "start_ms": 2026.0,
+    "end_ms": 3168.0,
+    "type": "diagram_zoom",
+    "text": "step2",
+    "payload": {
+      "scale": 1.9,
+      "x": -729.6,
+      "y": -410.4,
+      "assumed_width": 1920.0,
+      "assumed_height": 1080.0
+    }
+  },
+  {
+    "id": "segment_subtitle_show_16",
+    "start_ms": 2226.0,
+    "end_ms": 2912.3,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "memory",
+          "start_ms": 2226.0,
+          "end_ms": 2541.3
+        },
+        {
+          "word": "test.",
+          "start_ms": 2597.0,
+          "end_ms": 2912.3
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_17",
+    "start_ms": 2226.0,
+    "end_ms": 2541.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "memory",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2226.0,
+    "end_ms": 2541.3,
+    "type": "word",
+    "text": "memory",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_18",
+    "start_ms": 2534.4,
+    "end_ms": 3168.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_19",
+    "start_ms": 2597.0,
+    "end_ms": 2912.3,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "test.",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2597.0,
+    "end_ms": 2912.3,
+    "type": "word",
+    "text": "test.",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_cursor_move_20",
+    "start_ms": 2645.15,
+    "end_ms": 3245.15,
+    "type": "segment",
+    "text": "diagram_cursor_move",
+    "payload": {
+      "region": {
+        "x_pct": 0.6499999999999999,
+        "y_pct": 0.6499999999999999,
+        "w_pct": 0.1,
+        "h_pct": 0.1
+      },
+      "label": "Second step",
+      "element_id": "step2"
+    }
+  },
+  {
+    "id": "segment_scene_end_21",
+    "start_ms": 2668.0,
+    "end_ms": 3168.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  },
+  {
+    "id": "segment_diagram_zoom_out_22",
+    "start_ms": 5650.4,
+    "end_ms": 6650.4,
+    "type": "segment",
+    "text": "diagram_zoom_out",
+    "payload": {}
+  }
+]

@@ -1,0 +1,68 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor — Audio Clock Module
+   Manages time, supports Virtual Time Mode for Playwright,
+   and overrides standard timing loops to prevent sync drift.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    const originalPerformanceNow = performance.now.bind(performance);
+    const originalDateNow = Date.now.bind(Date);
+
+    let virtualTime = 0;
+    let lastRealTime = null;
+    const baseTime = originalPerformanceNow();
+    const baseDate = originalDateNow();
+
+    // Set globally on load if capturing
+    const IS_CAPTURING = window.IS_CAPTURING || false;
+
+    if (IS_CAPTURING) {
+        performance.now = function () {
+            return baseTime + virtualTime;
+        };
+        Date.now = function () {
+            return baseDate + virtualTime;
+        };
+        console.log("[AudioClock] Virtual Time Mode enabled (driven by real-sync ticker).");
+    }
+
+    window.getSceneTime = function () {
+        if (IS_CAPTURING) {
+            return virtualTime;
+        }
+        return performance.now() - baseTime;
+    };
+
+    window.startAudioClock = function () {
+        if (IS_CAPTURING) {
+            lastRealTime = originalPerformanceNow();
+            virtualTime = 0;
+            console.log("[AudioClock] Clock initialized.");
+        }
+    };
+
+    window.tickAudioClock = function () {
+        if (IS_CAPTURING) {
+            if (lastRealTime === null) {
+                lastRealTime = originalPerformanceNow();
+            }
+            const now = originalPerformanceNow();
+            const delta = now - lastRealTime;
+            // Advance virtual time by the exact elapsed real-world time, capped to prevent massive jumps
+            if (delta > 150.0) {
+                console.warn('[AudioClock] Slow frame detected: ' + delta.toFixed(1) + 'ms');
+            }
+            virtualTime += Math.min(delta, 250.0);
+            lastRealTime = now;
+        }
+    };
+
+    window.advanceVirtualClock = function (ms) {
+        if (IS_CAPTURING) {
+            // Keep legacy support for manual steps if needed, but tickAudioClock is the primary driver
+            virtualTime += ms;
+        }
+    };
+})();

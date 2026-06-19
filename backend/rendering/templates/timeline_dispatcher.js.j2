@@ -1,0 +1,341 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor — Timeline Dispatcher
+   Controls event firing chronologically and delegates to modules.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    const TD       = window.TIMELINE_DATA || {};
+    const timeline = TD.events || [];
+    const totalMs  = TD.total_duration_ms || 10000;
+
+    const firedFlags = new Array(timeline.length).fill(false);
+
+    /* ─── Utils ─────────────────────────────────────────────── */
+    window.$ = id => document.getElementById(id);
+    window.q = sel => document.querySelector(sel);
+    window.qa = sel => document.querySelectorAll(sel);
+
+    /* ─── Dispatch event by type ────────────────────────────── */
+    function handleEvent(ev) {
+        const t = ev.event_type;
+        const d = ev.data || {};
+        const durMs = ev.end_ms - ev.start_ms;
+
+        // Delegate bullet-related events
+        if (t === 'bullet_enter' || t === 'bullet_active' || t === 'bullet_done' || t === 'bullet_word_reveal' || t === 'zoom_word_glow' || t === 'gold_word_pulse') {
+            if (window.BulletEffects && typeof window.BulletEffects.handleEvent === 'function') {
+                window.BulletEffects.handleEvent(t, d, durMs);
+            }
+            return;
+        }
+
+        // Delegate diagram-related events
+        if (t.startsWith('diagram_') || t.startsWith('spatial_') || t === 'process_flow_pan' || t === 'sequential_zoom_per_region' || t === 'dramatic_arrow' || t === 'highlight_and_zoom') {
+            if (window.DiagramEffects && typeof window.DiagramEffects.handleEvent === 'function') {
+                window.DiagramEffects.handleEvent(t, d, durMs, ev);
+            }
+            return;
+        }
+
+        // Handle other general events (headings, scene_start, scene_end, takeaway, attention_hooks, etc.)
+        if (t === 'scene_start') {
+            const flash = window.$('scene-flash');
+            if (flash && typeof gsap !== 'undefined') {
+                gsap.fromTo(flash, {opacity: 1}, {opacity: 0, duration: 0.4});
+            }
+        }
+        
+        if (t === 'scene_end') {
+            const flash = window.$('scene-flash');
+            if (flash && typeof gsap !== 'undefined') {
+                gsap.fromTo(flash, {opacity: 0}, {opacity: 1, duration: 0.3, yoyo: true, repeat: 1});
+            }
+        }
+
+        if (t === 'heading_focus' || t === 'heading_glow') {
+            const heading = window.$('heading-left') || window.q('.slide-heading');
+            if (heading && typeof gsap !== 'undefined') {
+                gsap.fromTo(heading, 
+                    { opacity: 0, y: 30 }, 
+                    { opacity: 1, y: 0, duration: 0.8, ease: 'power3.out', onComplete: () => {
+                        const goldWord = heading.querySelector('.gold-word');
+                        if (goldWord) {
+                            gsap.to(goldWord, {
+                                color: '#FFD700',
+                                textShadow: '0 0 24px rgba(255,200,0,0.95)',
+                                duration: 0.5,
+                                ease: 'power2.out'
+                            });
+                        }
+                    }}
+                );
+            }
+        }
+
+        if (t === 'heading_action' && d.action_type) {
+            const target = d.target || 'heading_right';
+            const el = document.querySelector('.' + target.replace('_', '-')) || window.$(target.replace('_', '-'));
+            if (el) {
+                if (d.action_type === 'heading_zoom') {
+                    el.classList.add('heading-active');
+                    setTimeout(() => el.classList.remove('heading-active'), durMs || 1500);
+                } else if (d.action_type === 'heading_underline') {
+                    el.classList.add('heading-underline-anim');
+                    setTimeout(() => el.classList.remove('heading-underline-anim'), durMs || 1500);
+                }
+            }
+        }
+
+        if (t === 'ken_burns') {
+            const kbEl = window.$('kb-target');
+            if (kbEl) {
+                const dir = (d.direction || 'pan_right').replace(/_/g, '-');
+                kbEl.classList.remove('kb-pan-right','kb-pan-left','kb-zoom-in','kb-zoom-out');
+                void kbEl.offsetWidth; // force reflow
+                kbEl.classList.add('kb-' + dir);
+            }
+        }
+
+        if (t === 'takeaway_show') {
+            const el = window.$('takeaway-bar');
+            if (el && typeof gsap !== 'undefined') {
+                gsap.fromTo(el, {y:'100%',opacity:0}, {y:'0%',opacity:1,duration:0.5,ease:'power3.out'});
+                el.classList.add('takeaway-visible');
+            }
+        }
+
+        if (t === 'analogy_overlay') {
+            const ov = window.$('analogy-overlay');
+            if (ov) {
+                ov.style.background = 'linear-gradient(135deg, rgba(74,143,224,0.15), rgba(212,168,83,0.15))';
+                ov.classList.add('analogy-visible');
+                setTimeout(() => ov.classList.remove('analogy-visible'), durMs || 3000);
+            }
+        }
+
+        if (t === 'dramatic_pause') {
+            const stage = window.$('diag-stage') || window.$('right-panel');
+            if (stage && typeof gsap !== 'undefined') {
+                gsap.to(stage, { filter: 'brightness(0.85)', duration: 0.3 });
+                setTimeout(() => {
+                    gsap.to(stage, { filter: 'brightness(1.0)', duration: 0.5 });
+                }, durMs || 900);
+            }
+        }
+
+        if (t === 'attention_hook') {
+            let hook = window.$('attention-hook-box');
+            if (!hook) {
+                hook = document.createElement('div');
+                hook.id = 'attention-hook-box';
+                document.body.appendChild(hook);
+            }
+            const icons = {'did_you_know':'💡','quick_recap':'🔄','warning_box':'⚠️','callout_bubble':'📌'};
+            hook.className = 'hook-' + (d.hook_type||'did_you_know') + ' hook-' + (d.position||'top-right');
+            hook.innerHTML = '<span class="hook-icon">' + (icons[d.hook_type]||'💡') + '</span><span class="hook-text">' + (d.text||'') + '</span>';
+            hook.style.display = 'flex';
+            if (typeof gsap !== 'undefined') {
+                gsap.fromTo(hook, {opacity:0,y:-20,scale:0.8}, {opacity:1,y:0,scale:1,duration:0.4,ease:'back.out(1.5)'});
+                gsap.to(hook, {opacity:0,y:10,duration:0.4,delay:3.0,onComplete:()=>{hook.style.display='none';}});
+            } else {
+                hook.style.opacity = '0';
+                requestAnimationFrame(() => { hook.style.opacity = '1'; });
+                setTimeout(() => { hook.style.opacity='0'; setTimeout(()=>{hook.style.display='none';},400); }, 3500);
+            }
+        }
+
+        // Delegate marker-based think events
+        if (t === 'pause_and_think' || t === 'rhetorical_question') {
+            if (window.BulletEffects && typeof window.BulletEffects.showThinkIndicator === 'function') {
+                window.BulletEffects.showThinkIndicator(t, d.duration_ms, d.marker_type);
+            }
+        }
+
+        // Teacher drawing delegator (optional fallback or direct mapping)
+        if (t.startsWith('teacher_')) {
+            if (window.DiagramEffects && typeof window.DiagramEffects.handleEvent === 'function') {
+                window.DiagramEffects.handleEvent(t, d, durMs, ev);
+            }
+        }
+
+        // Layout shifts
+        if (t === 'layout_shift') {
+            if (typeof gsap !== 'undefined') {
+                let leftPct = 50, rightPct = 50;
+                if (d.layout === 'diagram_focus') { leftPct = 30; rightPct = 70; }
+                else if (d.layout === 'text_focus') { leftPct = 70; rightPct = 30; }
+                else if (d.layout === 'balanced') { leftPct = 55; rightPct = 45; }
+                
+                gsap.to(document.body, {
+                    '--col-left': leftPct + '%',
+                    '--col-right': rightPct + '%',
+                    duration: 1.2,
+                    ease: 'power2.inOut'
+                });
+            }
+        }
+
+        // Formula worked example specific delegators
+        if (t === 'formula_render' || t === 'term_underline_draw' || t === 'term_zoom' || t === 'formula_step_reveal' || t === 'formula_term_highlight') {
+            if (window.DiagramEffects && typeof window.DiagramEffects.handleEvent === 'function') {
+                window.DiagramEffects.handleEvent(t, d, durMs, ev);
+            }
+        }
+    }
+
+    /* ─── Main tick loop ────────────────────────────────────── */
+    let lastPanicCheck = 0;
+
+    function tick() {
+        // Advance clock using real-sync elapsed time
+        if (typeof window.tickAudioClock === 'function') {
+            window.tickAudioClock();
+        }
+
+        const ms = window.getSceneTime();
+
+        // Check timeline events
+        for (let i = 0; i < timeline.length; i++) {
+            if (!firedFlags[i] && ms >= timeline[i].start_ms) {
+                firedFlags[i] = true;
+                try { handleEvent(timeline[i]); } catch(e) { console.error('[Timeline]', e); }
+            }
+        }
+
+        // Update bullet highlights based on current time and segments
+        if (window.BulletEffects && typeof window.BulletEffects.updateActiveBulletByTime === 'function') {
+            window.BulletEffects.updateActiveBulletByTime(ms);
+        }
+
+        // Update diagram zooms and flow animations based on current time and segments
+        if (window.DiagAnim) {
+            if (typeof window.DiagAnim.updateActiveRegionByTime === 'function') {
+                window.DiagAnim.updateActiveRegionByTime(ms);
+            }
+            if (typeof window.DiagAnim.updateActiveFlowByTime === 'function') {
+                window.DiagAnim.updateActiveFlowByTime(ms);
+            }
+        }
+
+        if (debugOverlay) {
+            const activeBulletId = (window.BulletEffects && window.BulletEffects.currentActiveBulletId) || 'None';
+            const activeRegionId = (window.DiagAnim && window.DiagAnim.currentActiveRegionId) || 'None';
+            const activeFlowId = (window.DiagAnim && window.DiagAnim.currentActiveFlowId) || 'None';
+            debugOverlay.innerHTML = `Time: ${Math.round(ms)}ms / ${totalMs}ms<br>Active Bullet: ${activeBulletId}<br>Active Region: ${activeRegionId}<br>Active Flow: ${activeFlowId}`;
+        }
+
+        // Watchdog & Fail-Safes
+        if (ms > lastPanicCheck + 1000) {
+            lastPanicCheck = ms;
+            runWatchdog(ms);
+        }
+
+        // End of scene check
+        if (ms >= totalMs + 500) {
+            window.SCENE_FINISHED = true;
+            console.log("[Timeline] Scene finished. Flag set.");
+        }
+
+        if (ms < totalMs + 1000) {
+            requestAnimationFrame(tick);
+        }
+    }
+
+    function runWatchdog(ms) {
+        // 1. Heading Fail-Safe
+        const h = window.$('heading-left') || window.q('.slide-heading');
+        if (h && ms > totalMs * 0.15) {
+            const hOpacity = window.getComputedStyle(h).opacity;
+            if (hOpacity === '0' || h.style.color === 'transparent') {
+                h.style.color = '';
+                h.style.opacity = '1';
+            }
+        }
+
+        // 2. Bullet Fail-Safe
+        const bullets = window.qa('.bullet');
+        bullets.forEach((b, i) => {
+            const revealThreshold = (totalMs * 0.2) + (i * (totalMs * 0.1));
+            if (ms > revealThreshold && !b.classList.contains('b-visible')) {
+                b.classList.add('b-visible');
+                const spans = b.querySelectorAll('.word-span');
+                if (spans.length > 0 && typeof gsap !== 'undefined') {
+                    gsap.killTweensOf(spans);
+                    gsap.set(spans, {opacity: 1, y: 0, filter: 'blur(0px)'});
+                }
+                console.warn(`[Watchdog] Panic-revealing bullet ${i}`);
+            }
+        });
+
+        // 3. Diagram Fail-Safe
+        const dCard = window.$('diagram-card');
+        if (dCard && ms > totalMs * 0.4 && !dCard.classList.contains('diag-visible')) {
+            dCard.classList.add('diag-visible');
+        }
+    }
+
+    /* ─── Auto Fallbacks ────────────────────────────────────── */
+    function autoShowDiagram() {
+        const card = window.$('diagram-card');
+        if (!card) return;
+        const hasEvent = timeline.some(e => e.event_type === 'diagram_enter');
+        if (!hasEvent) {
+            setTimeout(() => {
+                card.classList.add('diag-visible');
+                setTimeout(() => card.classList.add('diag-zoom'), 700);
+            }, 1000);
+        }
+    }
+
+    function autoRevealBullets() {
+        const hasEvents = timeline.some(e => e.event_type === 'bullet_enter');
+        if (!hasEvents) {
+            window.qa('.bullet').forEach((b, i) => {
+                setTimeout(() => {
+                    b.classList.add('b-visible');
+                    if (i === 0) b.classList.add('b-active');
+                }, 500 + i * 800);
+            });
+        }
+    }
+
+    // Add timeline debug overlay in dev/preview mode
+    const isDebug = !window.IS_CAPTURING || window.location.search.includes('debug');
+    let debugOverlay = null;
+
+    /* ─── Init on load ──────────────────────────────────────── */
+    window.addEventListener('load', () => {
+        document.body.classList.add('scene-ready');
+        
+        if (isDebug) {
+            debugOverlay = document.createElement('div');
+            debugOverlay.id = 'timeline-debug-overlay';
+            debugOverlay.style.position = 'fixed';
+            debugOverlay.style.bottom = '10px';
+            debugOverlay.style.right = '10px';
+            debugOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
+            debugOverlay.style.color = '#00FF00';
+            debugOverlay.style.fontFamily = 'monospace';
+            debugOverlay.style.fontSize = '12px';
+            debugOverlay.style.padding = '8px 12px';
+            debugOverlay.style.borderRadius = '5px';
+            debugOverlay.style.zIndex = '10000';
+            debugOverlay.style.pointerEvents = 'none';
+            debugOverlay.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+            debugOverlay.innerHTML = 'Time: 0ms | Active: None';
+            document.body.appendChild(debugOverlay);
+        }
+
+        setTimeout(() => {
+            autoShowDiagram();
+            autoRevealBullets();
+            if (typeof window.startAudioClock === 'function') {
+                window.startAudioClock();
+            }
+            requestAnimationFrame(tick);
+        }, 100);
+    });
+
+})();

@@ -280,7 +280,7 @@ body.scene-ready { opacity: 1; }
     opacity: 0.92 !important;
     transform: translateX(0) !important;
 }
-.b-active {
+.b-active, .bullet-active {
     opacity: 1 !important;
     background: rgba(255, 255, 255, 0.96) !important;
     border: 2.5px solid var(--gold) !important;
@@ -292,27 +292,34 @@ body.scene-ready { opacity: 1; }
 }
 /* If the active bullet/card is inside a dark panel */
 .left-panel .b-active,
+.left-panel .bullet-active,
 .left-panel .bullet.b-active,
-.table-bullets-zone .b-active {
+.left-panel .bullet.bullet-active,
+.table-bullets-zone .b-active,
+.table-bullets-zone .bullet-active {
     background: rgba(36, 51, 71, 0.95) !important;
     border-color: var(--gold) !important;
     box-shadow: 0 8px 28px rgba(212, 168, 83, 0.35), 0 0 0 4px rgba(212, 168, 83, 0.10) !important;
 }
-.b-active .bullet-num {
+.b-active .bullet-num,
+.bullet-active .bullet-num {
     background: var(--gold) !important;
     color: var(--navy) !important;
     transform: scale(1.15) !important;
     box-shadow: 0 0 12px rgba(212, 168, 83, 0.5) !important;
     transition: all 0.3s ease !important;
 }
-.b-active .bullet-text {
+.b-active .bullet-text,
+.bullet-active .bullet-text {
     color: var(--navy) !important;
     font-weight: 700 !important;
     text-shadow: none !important;
 }
 /* Dark panels active text stays light instead of dark navy */
 .left-panel .b-active .bullet-text,
-.table-bullets-zone .b-active .bullet-text {
+.left-panel .bullet-active .bullet-text,
+.table-bullets-zone .b-active .bullet-text,
+.table-bullets-zone .bullet-active .bullet-text {
     color: var(--white) !important;
 }
 .b-done {

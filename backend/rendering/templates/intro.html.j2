@@ -97,14 +97,14 @@
     <div style="display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 20px;">
         {% for bullet in scene.bullets[:4] %}
         {% if bullet is mapping %}
-        <div class="bullet" data-index="{{ loop.index0 }}"
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}"
              style="flex-direction: row; align-items: center; background: rgba(255,255,255,0.06);
                     padding: 14px 28px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12);">
             <div class="bullet-num" style="background: rgba(201,185,154,0.15); color: var(--gold);">{{ "%02d"|format(loop.index) }}</div>
             <div class="bullet-text inter" style="color: rgba(255,255,255,0.85); font-size: 18px; margin-left: 12px;">{{ bullet.text }}</div>
         </div>
         {% else %}
-        <div class="bullet" data-index="{{ loop.index0 }}"
+        <div class="bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}"
              style="flex-direction: row; align-items: center; background: rgba(255,255,255,0.06);
                     padding: 14px 28px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.12);">
             <div class="bullet-num" style="background: rgba(201,185,154,0.15); color: var(--gold);">{{ "%02d"|format(loop.index) }}</div>

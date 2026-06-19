@@ -17,7 +17,48 @@ async def main():
                 "gold_word": "fidelity",
                 "heading_right": "Awaited Render",
                 "bullets": [{"num": "01", "text": "Point 1", "zoom_word": "Point", "trigger_word": "Hello"}],
-                "zoom_words": ["fidelity"]
+                "zoom_words": ["fidelity"],
+                "diagram_refs": ["static/avatars/my_avatar.jpg"],
+                "diagram_paths": ["static/avatars/my_avatar.jpg"],
+                "diagram_data": {
+                    "regions": [
+                        {
+                            "region_id": "step1",
+                            "bbox": {"x": 0.1, "y": 0.1, "width": 0.3, "height": 0.3},
+                            "role": "process",
+                            "description": "First step",
+                            "explanation_order": 1,
+                            "trigger_keyword": "Hello",
+                            "highlight_color": "blue"
+                        },
+                        {
+                            "region_id": "step2",
+                            "bbox": {"x": 0.5, "y": 0.5, "width": 0.4, "height": 0.4},
+                            "role": "output",
+                            "description": "Second step",
+                            "explanation_order": 2,
+                            "trigger_keyword": "memory",
+                            "highlight_color": "green"
+                        }
+                    ],
+                    "connectors": [
+                        {
+                            "connector_id": "arrow_step1_to_step2",
+                            "from_region_id": "step1",
+                            "to_region_id": "step2",
+                            "type": "dashed",
+                            "path": [
+                                {"x": 0.25, "y": 0.25},
+                                {"x": 0.4, "y": 0.25},
+                                {"x": 0.4, "y": 0.7},
+                                {"x": 0.7, "y": 0.7}
+                            ],
+                            "label": "process transition",
+                            "explanation_order": 1,
+                            "trigger_keyword": "high"
+                        }
+                    ]
+                }
             }
         ]
     }

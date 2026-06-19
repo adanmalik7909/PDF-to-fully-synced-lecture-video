@@ -1,0 +1,352 @@
+/* ═══════════════════════════════════════════════════════════════
+   SmartStudyInstructor — Bullet & Text Effects
+   Handles bullet reveals, glows, and narrative think indicators.
+   ═══════════════════════════════════════════════════════════════ */
+
+(function () {
+    'use strict';
+
+    function clearGlowProperties(el) {
+        if (!el) return;
+        if (typeof gsap !== 'undefined') {
+            gsap.set(el, { clearProps: "scale,color,textShadow,backgroundColor,borderRadius,padding,transform,fontWeight" });
+        } else {
+            el.style.color = '';
+            el.style.textShadow = '';
+            el.style.backgroundColor = '';
+            el.style.borderRadius = '';
+            el.style.padding = '';
+            el.style.transform = '';
+            el.style.scale = '';
+            el.style.fontWeight = '';
+        }
+    }
+
+    function cleanupGlowsInContainer(container) {
+        if (!container) return;
+        const glows = container.querySelectorAll('.zoom-word-inline');
+        glows.forEach(glow => {
+            if (typeof gsap !== 'undefined') gsap.killTweensOf(glow);
+            clearGlowProperties(glow);
+        });
+    }
+
+    window.BulletEffects = {
+        handleEvent: function (type, data, durMs) {
+            const idx = data.index !== undefined ? data.index : data.bullet_index;
+            const bulletId = data.bullet_id || `bullet_${idx}`;
+            const el = window.$(bulletId) || window.$('bullet_' + idx) || window.q(`.bullet[data-index="${idx}"]`);
+
+            /* ── bullet_word_reveal ── */
+            if (type === 'bullet_word_reveal' && el) {
+                el.classList.add('b-visible');
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(el, { x: -10 }, { x: 0, duration: 0.5, ease: 'power3.out' });
+                    const spans = el.querySelectorAll('.word-span');
+                    if (spans.length > 0) {
+                        gsap.killTweensOf(spans);
+                        gsap.fromTo(spans,
+                            { opacity: 0.15, filter: 'blur(3px)', y: 4 },
+                            { opacity: 1, filter: 'blur(0px)', y: 0, duration: 0.45, stagger: 0.08, ease: 'power2.out' }
+                        );
+                    }
+                } else {
+                    el.style.opacity = '1';
+                    el.querySelectorAll('.word-span').forEach(s => {
+                        s.style.opacity = '1';
+                        s.style.filter = 'none';
+                    });
+                }
+            }
+
+            /* ── bullet_enter ── */
+            if (type === 'bullet_enter' && el) {
+                el.classList.add('b-visible');
+                if (typeof gsap !== 'undefined') {
+                    gsap.fromTo(el, { x: -10 }, { x: 0, duration: 0.4, ease: 'power3.out' });
+                }
+            }
+
+            /* ── bullet_active ── */
+            if (type === 'bullet_active') {
+                // Driven continuously via updateActiveBulletByTime
+            }
+
+            /* ── bullet_done ── */
+            if (type === 'bullet_done') {
+                // Driven continuously via updateActiveBulletByTime
+            }
+
+            /* ── zoom_word_glow ── */
+            if (type === 'zoom_word_glow') {
+                const elId = data.element_id;
+                let targetWordEl = elId ? window.$(elId) : null;
+
+                if (!targetWordEl && data.word) {
+                    const wordLower = data.word.toLowerCase().replace(/[^a-z0-9]/g, '');
+                    const inlineWords = window.qa('.zoom-word-inline');
+                    for (let iw of inlineWords) {
+                        const iwText = iw.textContent.toLowerCase().replace(/[^a-z0-9]/g, '');
+                        if (iwText === wordLower || iwText.includes(wordLower) || wordLower.includes(iwText)) {
+                            targetWordEl = iw;
+                            break;
+                        }
+                    }
+                }
+
+                if (targetWordEl && targetWordEl.classList.contains('word-span') && targetWordEl.parentElement && targetWordEl.parentElement.classList.contains('zoom-word-inline')) {
+                    targetWordEl = targetWordEl.parentElement;
+                }
+
+                if (targetWordEl) {
+                    const childSpans = targetWordEl.querySelectorAll('.word-span');
+                    if (childSpans.length > 0) {
+                        if (typeof gsap !== 'undefined') {
+                            gsap.set(childSpans, { opacity: 1, y: 0, filter: 'blur(0px)' });
+                        } else {
+                            childSpans.forEach(cs => { cs.style.opacity = '1'; cs.style.transform = 'none'; cs.style.filter = 'none'; });
+                        }
+                    }
+
+                    const isInLeftPanel = targetWordEl.closest('.left-panel');
+                    const glowColor = isInLeftPanel ? '#FFD700' : '#2E6FBF';
+                    const glowShadow = isInLeftPanel ? '0 0 20px #FFD700, 0 0 40px rgba(255,215,0,0.4)' : '0 0 15px rgba(46,111,191,0.3)';
+                    const bgHighlight = isInLeftPanel ? 'transparent' : 'rgba(212, 168, 83, 0.25)';
+
+                    if (typeof gsap !== 'undefined') {
+                        gsap.set(targetWordEl, { opacity: 1 });
+                        gsap.to(targetWordEl, {
+                            scale: 1.15,
+                            color: glowColor,
+                            textShadow: glowShadow,
+                            backgroundColor: bgHighlight,
+                            borderRadius: isInLeftPanel ? '0px' : '4px',
+                            padding: isInLeftPanel ? '0px' : '2px 6px',
+                            duration: 0.35,
+                            ease: 'power2.out',
+                            yoyo: true,
+                            repeat: 1,
+                            overwrite: 'auto',
+                            onComplete: () => clearGlowProperties(targetWordEl)
+                        });
+                    } else {
+                        targetWordEl.style.opacity = '1';
+                        targetWordEl.style.color = glowColor;
+                        targetWordEl.style.textShadow = glowShadow;
+                        if (!isInLeftPanel) {
+                            targetWordEl.style.backgroundColor = bgHighlight;
+                            targetWordEl.style.borderRadius = '4px';
+                            targetWordEl.style.padding = '2px 6px';
+                        }
+                        setTimeout(() => {
+                            targetWordEl.style.color = '';
+                            targetWordEl.style.textShadow = '';
+                            targetWordEl.style.backgroundColor = '';
+                            targetWordEl.style.borderRadius = '';
+                            targetWordEl.style.padding = '';
+                        }, durMs || 2000);
+                    }
+                }
+            }
+
+            /* ── gold_word_pulse ── */
+            if (type === 'gold_word_pulse' && data.word) {
+                const wordLower = data.word.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const goldElements = window.qa('.gold-word');
+                let matchedEl = null;
+                for (let el of goldElements) {
+                    if (el.textContent.toLowerCase().replace(/[^a-z0-9]/g, '').includes(wordLower)) {
+                        matchedEl = el;
+                        break;
+                    }
+                }
+                if (matchedEl && typeof gsap !== 'undefined') {
+                    gsap.fromTo(matchedEl,
+                        { scale: 1, color: '#FFD700', textShadow: '0 0 10px rgba(255,215,0,0.4)' },
+                        { scale: 1.2, color: '#FFD700', textShadow: '0 0 30px rgba(255,215,0,0.95)', duration: 0.5, yoyo: true, repeat: 1, ease: 'back.out(2)' }
+                    );
+                }
+            }
+        },
+
+        /* ─── Premium Narrative Think Indicator ─── */
+        showThinkIndicator: function (type, durationMs, markerType) {
+            const container = document.body;
+            let indicator = window.$('think-indicator');
+            
+            if (!indicator) {
+                indicator = document.createElement('div');
+                indicator.id = 'think-indicator';
+                
+                // Base Glassmorphic Layout
+                indicator.style.position = 'fixed';
+                indicator.style.top = '40px';
+                indicator.style.right = '40px';
+                indicator.style.zIndex = '1000';
+                indicator.style.background = 'rgba(12, 18, 35, 0.75)';
+                indicator.style.border = '1px solid rgba(255, 215, 0, 0.35)';
+                indicator.style.borderRadius = '16px';
+                indicator.style.padding = '14px 24px';
+                indicator.style.boxShadow = '0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1)';
+                indicator.style.backdropFilter = 'blur(12px)';
+                indicator.style.webkitBackdropFilter = 'blur(12px)';
+                indicator.style.display = 'flex';
+                indicator.style.alignItems = 'center';
+                indicator.style.gap = '12px';
+                indicator.style.color = '#fff';
+                indicator.style.fontFamily = "'Inter', sans-serif";
+                indicator.style.opacity = '0';
+                indicator.style.transform = 'translateY(-20px)';
+                indicator.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                
+                container.appendChild(indicator);
+            }
+
+            // Custom Content based on Pause Type
+            let emoji = '💡';
+            let titleText = 'Reflect';
+            let bodyText = 'Take a moment to think about this.';
+
+            if (type === 'rhetorical_question') {
+                emoji = '🤔';
+                titleText = 'Rhetorical Question';
+                bodyText = 'Consider this in your mind...';
+            } else if (markerType === 'recap') {
+                emoji = '🔄';
+                titleText = 'Quick Recap';
+                bodyText = 'Consolidating what we learned...';
+            } else if (markerType === 'pause') {
+                emoji = '⏳';
+                bodyText = 'Let this concept sink in.';
+            }
+
+            indicator.innerHTML = `
+                <span style="font-size: 24px; animation: bounce 1.2s infinite alternate;">${emoji}</span>
+                <div>
+                    <div style="font-weight: 700; color: #FFD700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;">${titleText}</div>
+                    <div style="font-size: 15px; color: rgba(255,255,255,0.9); font-weight: 500; margin-top: 2px;">${bodyText}</div>
+                </div>
+            `;
+
+            // GSAP Enter and Exit
+            if (typeof gsap !== 'undefined') {
+                gsap.killTweensOf(indicator);
+                gsap.to(indicator, { opacity: 1, y: 0, duration: 0.5, ease: 'back.out(1.5)' });
+                
+                // Continuous pulse scale during duration
+                gsap.to(indicator, { scale: 1.03, duration: 0.7, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+
+                setTimeout(() => {
+                    gsap.killTweensOf(indicator);
+                    gsap.to(indicator, { opacity: 0, y: -20, scale: 0.95, duration: 0.4, ease: 'power2.in' });
+                }, Math.max(durationMs - 400, 200));
+            } else {
+                indicator.style.opacity = '1';
+                indicator.style.transform = 'translateY(0)';
+                setTimeout(() => {
+                    indicator.style.opacity = '0';
+                    indicator.style.transform = 'translateY(-20px)';
+                }, durationMs - 400);
+            }
+        },
+
+        /* ─── State-Based Audio-Driven Bullet Sync ─── */
+        currentActiveBulletId: null,
+        bulletSegments: null,
+
+        initSegments: function () {
+            const TD = window.TIMELINE_DATA || {};
+            const segs = TD.segments || [];
+            this.bulletSegments = segs
+                .filter(s => s.type === 'bullet')
+                .sort((a, b) => a.start_ms - b.start_ms);
+        },
+
+        setActiveBullet: function (bulletId) {
+            if (this.currentActiveBulletId === bulletId) {
+                return;
+            }
+
+            const bullets = Array.from(window.qa('.bullet, .legend-card, .step-card'));
+            let activeIdx = -1;
+            if (bulletId) {
+                activeIdx = bullets.findIndex(b => b.id === bulletId);
+            }
+
+            bullets.forEach((b, idx) => {
+                if (idx !== activeIdx) {
+                    b.classList.remove('bullet-active');
+                    b.classList.remove('b-active');
+                    
+                    if (activeIdx !== -1 && idx < activeIdx) {
+                        b.classList.add('b-done');
+                    } else {
+                        b.classList.remove('b-done');
+                    }
+                    
+                    const numEl = b.querySelector('.bullet-num, .step-card-num');
+                    const txtEl = b.querySelector('.bullet-text, .step-card-text');
+                    if (typeof gsap !== 'undefined') {
+                        if (numEl) gsap.to(numEl, { scale: 1, duration: 0.3, clearProps: "scale,transform" });
+                        if (txtEl) gsap.to(txtEl, { fontWeight: '400', duration: 0.3, clearProps: "fontWeight" });
+                    } else {
+                        if (numEl) numEl.style.transform = '';
+                        if (txtEl) txtEl.style.fontWeight = '';
+                    }
+                }
+            });
+
+            if (activeIdx !== -1) {
+                const el = bullets[activeIdx];
+                el.classList.add('bullet-active');
+                el.classList.add('b-active');
+                el.classList.add('b-visible');
+                el.classList.remove('b-done');
+
+                cleanupGlowsInContainer(el);
+
+                const numEl = el.querySelector('.bullet-num, .step-card-num');
+                const txtEl = el.querySelector('.bullet-text, .step-card-text');
+                if (typeof gsap !== 'undefined') {
+                    if (numEl) gsap.to(numEl, { scale: 1.15, duration: 0.3, ease: 'back.out(2)' });
+                    if (txtEl) gsap.to(txtEl, { fontWeight: '700', duration: 0.3 });
+                    gsap.fromTo(el, { scale: 1 }, { scale: 1.02, duration: 0.3, ease: 'power2.out' });
+                } else {
+                    if (numEl) numEl.style.transform = 'scale(1.15)';
+                    if (txtEl) txtEl.style.fontWeight = '700';
+                    el.style.transform = 'scale(1.02)';
+                }
+
+                this.currentActiveBulletId = bulletId;
+            } else {
+                if (bulletId) {
+                    console.warn(`[BulletEffects] Warning: bullet element with ID "${bulletId}" does not exist in DOM.`);
+                }
+                this.currentActiveBulletId = null;
+            }
+        },
+
+        updateActiveBulletByTime: function (currentMs) {
+            if (this.bulletSegments === null) {
+                this.initSegments();
+            }
+
+            let activeBulletId = null;
+            for (let i = this.bulletSegments.length - 1; i >= 0; i--) {
+                const seg = this.bulletSegments[i];
+                if (currentMs >= seg.start_ms && currentMs < seg.end_ms) {
+                    activeBulletId = seg.bullet_id;
+                    break;
+                }
+            }
+
+            const TD = window.TIMELINE_DATA || {};
+            const totalMs = TD.total_duration_ms || 10000;
+            if (currentMs >= totalMs) {
+                activeBulletId = null;
+            }
+
+            this.setActiveBullet(activeBulletId);
+        }
+    };
+})();

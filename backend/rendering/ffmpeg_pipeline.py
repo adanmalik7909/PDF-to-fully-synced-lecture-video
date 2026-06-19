@@ -37,6 +37,25 @@ def _run(cmd: List[str], label: str = "FFmpeg") -> bool:
         return False
 
 
+def get_media_duration(file_path: str) -> float:
+    """Get duration of a media file (audio/video) in seconds using ffprobe."""
+    if not file_path or not os.path.exists(file_path):
+        return 0.0
+    try:
+        cmd = [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            file_path
+        ]
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            return float(result.stdout.strip())
+    except Exception as e:
+        log_error(f"[FFmpeg] Failed to probe duration for {file_path}: {e}")
+    return 0.0
+
+
 def _safe_srt_path(srt_path: str) -> str:
     """
     Make SRT path safe for FFmpeg subtitles filter on Windows.
@@ -78,6 +97,7 @@ class FFmpegPipeline:
         mood:        str,
         output_path: str,
         avatar_path: Optional[str] = None,
+        duration_sec: Optional[float] = None,
     ) -> Optional[str]:
         """
         Compose one scene:
@@ -92,7 +112,14 @@ class FFmpegPipeline:
             log_error(f"[FFmpeg] audio not found: {audio_path}")
             return None
 
-        log_info(f"[FFmpeg] Composing → {os.path.basename(output_path)}")
+        # Enforce exact target duration
+        target_dur = duration_sec or get_media_duration(audio_path)
+        if target_dur <= 0.0:
+            log_error(f"[FFmpeg] WARNING: Probed duration is 0 or negative for {audio_path}. Using 10.0s fallback.")
+            target_dur = 10.0  # safety fallback
+        target_dur = max(target_dur, 0.5)  # absolute floor to prevent FFmpeg hang
+
+        log_info(f"[FFmpeg] Composing → {os.path.basename(output_path)} (target duration={target_dur:.3f}s)")
 
         # Try SRT burn if file is available and non-empty
         use_srt = (
@@ -103,14 +130,14 @@ class FFmpegPipeline:
 
         if use_srt:
             log_info(f"[FFmpeg] ✅ Burning ASS subtitles → {os.path.basename(srt_path)} ({os.path.getsize(srt_path)} bytes)")
-            result = self._mux_with_ass(webm_path, audio_path, srt_path, output_path, avatar_path, mood)
+            result = self._mux_with_ass(webm_path, audio_path, srt_path, output_path, avatar_path, mood, target_dur)
             if result:
                 return result
             log_error("[FFmpeg] ⚠️ ASS burn failed — falling back to simple mux (NO subtitles)")
         else:
             log_info(f"[FFmpeg] ⚠️ No ASS subtitles: srt_path={srt_path}, exists={os.path.exists(srt_path) if srt_path else 'N/A'}")
 
-        return self._simple_mux(webm_path, audio_path, output_path)
+        return self._simple_mux(webm_path, audio_path, output_path, target_dur)
 
     def _mux_with_ass(
         self,
@@ -119,7 +146,8 @@ class FFmpegPipeline:
         ass_path:    str,
         output_path: str,
         avatar_path: Optional[str] = None,
-        scene_type:  str = "concept"
+        scene_type:  str = "concept",
+        duration_sec: float = 10.0
     ) -> Optional[str]:
         """Mux webm + audio, burn ASS subtitles, and optionally overlay Kaggle avatar."""
         safe_ass = _safe_srt_path(ass_path)
@@ -141,10 +169,11 @@ class FFmpegPipeline:
             ring_mask = f"geq=lum='p(X,Y)':a='if(lt(sqrt(pow(X-{half_ring},2)+pow(Y-{half_ring},2)),{half_ring}),255,0)'"
             
             filter_complex = (
+                f"[0:v]tpad=stop_mode=clone:stop=-1[v_padded];"
                 f"[1:v]scale={avatar_size}:{avatar_size},format=yuva420p,{circle_mask}[av];"
                 f"color=c=0x{accent_color}:s={total_size}x{total_size}:d=1,format=yuva420p,{ring_mask}[ring];"
                 f"[ring][av]overlay={border_size}:{border_size}[styled_av];"
-                f"[0:v][styled_av]overlay=236:H-h-80[tmp_v];"
+                f"[v_padded][styled_av]overlay=236:H-h-80[tmp_v];"
                 f"[tmp_v]ass='{safe_ass}'[vout]"
             )
             
@@ -171,6 +200,7 @@ class FFmpegPipeline:
                 "-r", "30",
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-t", f"{duration_sec:.3f}",
                 "-shortest",
                 "-movflags", "+faststart",
                 output_path
@@ -181,7 +211,7 @@ class FFmpegPipeline:
                 "-i", webm_path,
                 "-i", audio_path,
                 "-filter_complex",
-                f"[0:v]ass='{safe_ass}'[vout]",
+                f"[0:v]tpad=stop_mode=clone:stop=-1,ass='{safe_ass}'[vout]",
                 "-map", "[vout]",
                 "-map", "1:a",
                 "-c:v", "libx264",
@@ -191,6 +221,7 @@ class FFmpegPipeline:
                 "-r", "30",
                 "-c:a", "aac",
                 "-b:a", "192k",
+                "-t", f"{duration_sec:.3f}",
                 "-shortest",
                 "-movflags", "+faststart",
                 output_path
@@ -209,12 +240,14 @@ class FFmpegPipeline:
         webm_path:   str,
         audio_path:  str,
         output_path: str,
+        duration_sec: float = 10.0
     ) -> Optional[str]:
         """Simple video + audio mux — reliable fallback (no subtitles)."""
         cmd = [
             "ffmpeg", "-y",
             "-i", webm_path,
             "-i", audio_path,
+            "-vf", "tpad=stop_mode=clone:stop=-1",
             "-c:v", "libx264",
             "-preset", "ultrafast",
             "-crf", "18",
@@ -222,6 +255,7 @@ class FFmpegPipeline:
             "-r", "30",
             "-c:a", "aac",
             "-b:a", "192k",
+            "-t", f"{duration_sec:.3f}",
             "-shortest",
             "-movflags", "+faststart",
             output_path

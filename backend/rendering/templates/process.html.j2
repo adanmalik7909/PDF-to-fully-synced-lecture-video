@@ -155,7 +155,7 @@
         <div class="process-steps-col" id="bullets-zone">
             {% for bullet in scene.bullets %}
             {% if bullet is mapping %}
-            <div class="step-card bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="step-card bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
                 <div class="step-card-num">{{ "%02d"|format(loop.index) }}</div>
                 <div class="step-card-text inter">
                     {% set btext = bullet.text or '' %}
@@ -168,7 +168,7 @@
                 </div>
             </div>
             {% else %}
-            <div class="step-card bullet" data-index="{{ loop.index0 }}" id="bullet_{{ loop.index0 }}">
+            <div class="step-card bullet" data-index="{{ loop.index0 }}" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}">
                 <div class="step-card-num">{{ "%02d"|format(loop.index) }}</div>
                 <div class="step-card-text inter">{{ bullet | wordwrap_spans | safe }}</div>
             </div>

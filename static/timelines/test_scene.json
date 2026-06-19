@@ -1,0 +1,301 @@
+[
+  {
+    "id": "segment_ken_burns_1",
+    "start_ms": 0,
+    "end_ms": 2952.0,
+    "type": "segment",
+    "text": "ken_burns",
+    "payload": {
+      "direction": "pan_right"
+    }
+  },
+  {
+    "id": "segment_scene_start_0",
+    "start_ms": 0,
+    "end_ms": 400,
+    "type": "segment",
+    "text": "scene_start",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_2",
+    "start_ms": 0.0,
+    "end_ms": 2012.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "Hello",
+          "start_ms": 0.0,
+          "end_ms": 292.4
+        },
+        {
+          "word": "this",
+          "start_ms": 344.0,
+          "end_ms": 636.4
+        },
+        {
+          "word": "is",
+          "start_ms": 688.0,
+          "end_ms": 980.4
+        },
+        {
+          "word": "a",
+          "start_ms": 1032.0,
+          "end_ms": 1324.4
+        },
+        {
+          "word": "high",
+          "start_ms": 1376.0,
+          "end_ms": 1668.4
+        },
+        {
+          "word": "fidelity",
+          "start_ms": 1720.0,
+          "end_ms": 2012.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_3",
+    "start_ms": 0.0,
+    "end_ms": 292.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "Hello",
+      "index": 0,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "sentence_0",
+    "start_ms": 0.0,
+    "end_ms": 2700.4,
+    "type": "sentence",
+    "text": "Hello this is a high fidelity memory test.",
+    "payload": {}
+  },
+  {
+    "id": "word_0",
+    "start_ms": 0.0,
+    "end_ms": 292.4,
+    "type": "word",
+    "text": "Hello",
+    "payload": {}
+  },
+  {
+    "id": "segment_heading_focus_4",
+    "start_ms": 200,
+    "end_ms": 3200,
+    "type": "segment",
+    "text": "heading_focus",
+    "payload": {
+      "heading_left": "Stability Test",
+      "heading_right": "Awaited Render"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_5",
+    "start_ms": 344.0,
+    "end_ms": 636.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "this",
+      "index": 1,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_1",
+    "start_ms": 344.0,
+    "end_ms": 636.4,
+    "type": "word",
+    "text": "this",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_6",
+    "start_ms": 688.0,
+    "end_ms": 980.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "is",
+      "index": 2,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_2",
+    "start_ms": 688.0,
+    "end_ms": 980.4,
+    "type": "word",
+    "text": "is",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_7",
+    "start_ms": 1032.0,
+    "end_ms": 1324.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "a",
+      "index": 3,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_3",
+    "start_ms": 1032.0,
+    "end_ms": 1324.4,
+    "type": "word",
+    "text": "a",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_word_hl_8",
+    "start_ms": 1376.0,
+    "end_ms": 1668.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "high",
+      "index": 4,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "word_4",
+    "start_ms": 1376.0,
+    "end_ms": 1668.4,
+    "type": "word",
+    "text": "high",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_dim_11",
+    "start_ms": 1720.0,
+    "end_ms": 2212.4,
+    "type": "segment",
+    "text": "subtitle_dim",
+    "payload": {
+      "opacity": 0.3,
+      "trigger_word": "dim"
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_9",
+    "start_ms": 1720.0,
+    "end_ms": 2012.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "fidelity",
+      "index": 5,
+      "group_idx": 0
+    }
+  },
+  {
+    "id": "segment_zoom_word_glow_10",
+    "start_ms": 1720.0,
+    "end_ms": 2212.4,
+    "type": "segment",
+    "text": "zoom_word_glow",
+    "payload": {
+      "word": "fidelity",
+      "element_id": "zw_0"
+    }
+  },
+  {
+    "id": "word_5",
+    "start_ms": 1720.0,
+    "end_ms": 2012.4,
+    "type": "word",
+    "text": "fidelity",
+    "payload": {}
+  },
+  {
+    "id": "segment_subtitle_show_12",
+    "start_ms": 2064.0,
+    "end_ms": 2700.4,
+    "type": "segment",
+    "text": "subtitle_show",
+    "payload": {
+      "words": [
+        {
+          "word": "memory",
+          "start_ms": 2064.0,
+          "end_ms": 2356.4
+        },
+        {
+          "word": "test.",
+          "start_ms": 2408.0,
+          "end_ms": 2700.4
+        }
+      ]
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_13",
+    "start_ms": 2064.0,
+    "end_ms": 2356.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "memory",
+      "index": 0,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_6",
+    "start_ms": 2064.0,
+    "end_ms": 2356.4,
+    "type": "word",
+    "text": "memory",
+    "payload": {}
+  },
+  {
+    "id": "segment_takeaway_show_14",
+    "start_ms": 2361.6,
+    "end_ms": 2952.0,
+    "type": "segment",
+    "text": "takeaway_show",
+    "payload": {
+      "text": ""
+    }
+  },
+  {
+    "id": "segment_subtitle_word_hl_15",
+    "start_ms": 2408.0,
+    "end_ms": 2700.4,
+    "type": "segment",
+    "text": "subtitle_word_hl",
+    "payload": {
+      "word": "test.",
+      "index": 1,
+      "group_idx": 1
+    }
+  },
+  {
+    "id": "word_7",
+    "start_ms": 2408.0,
+    "end_ms": 2700.4,
+    "type": "word",
+    "text": "test.",
+    "payload": {}
+  },
+  {
+    "id": "segment_scene_end_16",
+    "start_ms": 2452.0,
+    "end_ms": 2952.0,
+    "type": "segment",
+    "text": "scene_end",
+    "payload": {}
+  }
+]

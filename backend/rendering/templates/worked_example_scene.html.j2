@@ -116,7 +116,7 @@
         <div class="variable-legend">
             {% if scene.equation_data and scene.equation_data.variables %}
                 {% for var in scene.equation_data.variables %}
-                <div class="legend-card" id="bullet_{{ loop.index0 }}" data-index="{{ loop.index0 }}">
+                <div class="legend-card" id="bullet_{{ scene.scene_index }}_{{ loop.index0 }}" data-index="{{ loop.index0 }}">
                     <div class="legend-symbol">{{ var.symbol }}</div>
                     <div class="legend-text" style="font-weight: 600; font-size: 15px;">{{ var.meaning }}</div>
                 </div>
